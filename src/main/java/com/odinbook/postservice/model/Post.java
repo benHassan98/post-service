@@ -50,7 +50,7 @@ public class Post {
     @ElementCollection
     @CollectionTable(name = "posts_friends_visibility" ,joinColumns = @JoinColumn(name = "post_id"))
     @Column(name = "friend_id")
-    private List<Long> visibleToAccountList = new ArrayList<>();
+    private List<Long> visibleToFriendList = new ArrayList<>();
 
     @Column(name = "created_date", nullable = false, updatable = false)
     @CreationTimestamp
@@ -116,12 +116,12 @@ public class Post {
         this.friendsVisibilityType = friendsVisibilityType;
     }
 
-    public List<Long> getVisibleToAccountList() {
-        return visibleToAccountList;
+    public List<Long> getVisibleToFriendList() {
+        return visibleToFriendList;
     }
 
-    public void setVisibleToAccountList(List<Long> visibleToAccountList) {
-        this.visibleToAccountList = visibleToAccountList;
+    public void setVisibleToFriendList(List<Long> visibleToFriendList) {
+        this.visibleToFriendList = visibleToFriendList;
     }
 
     public MultipartFile[] getImageList() {

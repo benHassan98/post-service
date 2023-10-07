@@ -11,4 +11,5 @@ public interface CommentRepository extends JpaRepository<Comment,Long> {
     public List<Comment> findCommentsByAccountId(Long accountId);
     @Query(value = "select * from comments where post_id = ?",nativeQuery = true)
     public List<Comment> findCommentsByPostId(Long postId);
+    public void deleteCommentsByPostId(Long postId);
 }
