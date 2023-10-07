@@ -3,14 +3,17 @@ package com.odinbook.postservice.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.odinbook.postservice.entityListener.PostListener;
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.sql.Date;
 import java.util.ArrayList;
 import java.util.List;
 
 @Entity
+@EntityListeners(value = PostListener.class)
 @Table(name = "posts")
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Post {
@@ -21,6 +24,9 @@ public class Post {
     private Long accountId;
     @Column(name = "content")
     private String content;
+
+    @Transient
+    private MultipartFile[] imageList;
 
     @ManyToOne
     @JoinColumn(name = "shared_from_post_id")
@@ -116,5 +122,13 @@ public class Post {
 
     public void setVisibleToAccountList(List<Long> visibleToAccountList) {
         this.visibleToAccountList = visibleToAccountList;
+    }
+
+    public MultipartFile[] getImageList() {
+        return imageList;
+    }
+
+    public void setImageList(MultipartFile[] imageList) {
+        this.imageList = imageList;
     }
 }
