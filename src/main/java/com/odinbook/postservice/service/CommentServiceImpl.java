@@ -57,22 +57,36 @@ public class CommentServiceImpl implements CommentService{
     }
 
     @Override
-    public void deleteCommentById(Long commentId, Long deletingAccountId, String removeReason) throws NoSuchElementException {
+    public void deleteCommentById(Long commentId, Long deletingAccountId) throws NoSuchElementException {
         Comment comment = commentRepository.findById(commentId)
-                .orElseThrow(NoSuchElementException::new);
+                .orElseThrow();
 
         commentRepository.deleteById(commentId);
 
-        Object commentRemovalObject = new Object(){
-            private final Comment removedComment = comment;
-            private final Long  accountId = deletingAccountId;
-            private final String reason = removeReason;
-        };
+        if(!comment.getAccountId().equals(deletingAccountId)){
+            Object commentRemovalObject = new Object(){
+                private final Comment removedComment = comment;
+                private final Long  accountId = deletingAccountId;
+            };
 
 
-        Message<Object> commentMessage = MessageBuilder
-                .withPayload(commentRemovalObject)
-                .setHeader("notificationType","removeComment")
+            Message<Object> commentMessage = MessageBuilder
+                    .withPayload(commentRemovalObject)
+                    .setHeader("notificationType","removeComment")
+                    .build();
+
+            notificationRequest.send(commentMessage);
+        }
+    }
+
+    @Override
+    public void banByCommentId(Long commentId) {
+        Comment comment = commentRepository.findById(commentId)
+                        .orElseThrow();
+        commentRepository.updateCommentByIdAndIsBanned(commentId, true);
+        Message<Comment> commentMessage = MessageBuilder
+                .withPayload(comment)
+                .setHeader("notificationType","banComment")
                 .build();
 
         notificationRequest.send(commentMessage);

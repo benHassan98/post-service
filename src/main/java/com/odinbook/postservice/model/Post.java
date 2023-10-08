@@ -44,6 +44,8 @@ public class Post {
     @Column(name = "is_followers_visible")
     private Boolean isVisibleToFollowers;
 
+    @Column(name = "is_banned")
+    private Boolean isBanned;
     @Column(name = "friends_visibility_type")
     private Boolean friendsVisibilityType;
 
@@ -130,5 +132,13 @@ public class Post {
 
     public void setImageList(MultipartFile[] imageList) {
         this.imageList = imageList;
+    }
+
+    public Boolean getBanned() {
+        return isBanned;
+    }
+
+    public void setBanned(Boolean banned) {
+        isBanned = banned;
     }
 }

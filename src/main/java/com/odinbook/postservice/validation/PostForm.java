@@ -25,6 +25,7 @@ public class PostForm {
         post.setSharedFromPost(this.sharedFromPost);
         post.setFriendsVisibilityType(this.friendsVisibilityType);
         post.setVisibleToFollowers(this.isVisibleToFollowers);
+        post.setBanned(false);
         post.setVisibleToFriendList(this.visibleToFriendList);
         post.setImageList(this.imageList);
         return post;

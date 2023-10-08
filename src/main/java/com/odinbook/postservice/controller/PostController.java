@@ -2,35 +2,68 @@ package com.odinbook.postservice.controller;
 
 import com.odinbook.postservice.model.Post;
 import com.odinbook.postservice.service.PostService;
+import com.odinbook.postservice.validation.PostForm;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.http.HttpStatusCode;
+import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.MessageBuilder;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.*;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.Objects;
 
 @RestController
 public class PostController {
     private final PostService postService;
-    private final MessageChannel notificationRequest;
-
     @Autowired
-    public PostController(PostService postService,
-                          @Qualifier("notificationRequest") MessageChannel notificationRequest) {
+    public PostController(PostService postService) {
         this.postService = postService;
-        this.notificationRequest = notificationRequest;
     }
-    @GetMapping("/try")
-    public String ty(){
-        Message<String> postMessage = MessageBuilder
-                .withPayload("It WORKS !!!!!!!")
-                .setHeader("notificationType","postNotification")
-                .build();
+    @PostMapping("/create")
+    public ResponseEntity<?> createPost(@Valid @RequestBody PostForm postForm,
+                                        BindingResult bindingResult){
 
-        notificationRequest.send(postMessage);
-
-        return "Hello";
+        if(bindingResult.hasErrors()){
+            return ResponseEntity.badRequest().body(bindingResult.getAllErrors());
+        }
+        return  ResponseEntity.ok(postService.createPost(postForm.getPost()));
 
     }
+
+    @GetMapping("/all")
+    public List<Post> findAll(){
+        return postService.findAll();
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<?> findPostById(@PathVariable Long id){
+
+        return postService.findPostById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.badRequest().build());
+    }
+
+    @GetMapping("/account/{accountId}")
+    public List<Post> findPostsByAccountId(@PathVariable Long accountId){
+        return postService.findPostsByAccountId(accountId);
+    }
+
+    @DeleteMapping("/{deletingAccountId}/")
+    public void deleteById(@PathVariable Long id){
+        try{
+            postService.deletePostById(id);
+        }
+        catch (IOException ioException){
+            throw new RuntimeException(ioException);
+        }
+    }
+
+
+
 }

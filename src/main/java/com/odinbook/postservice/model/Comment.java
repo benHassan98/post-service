@@ -27,6 +27,8 @@ public class Comment {
     @Column(name = "content")
     private String content;
 
+    @Column(name = "is_banned")
+    private Boolean isBanned;
     @Transient
     private MultipartFile[] imageList;
 
@@ -76,5 +78,13 @@ public class Comment {
 
     public void setImageList(MultipartFile[] imageList) {
         this.imageList = imageList;
+    }
+
+    public Boolean getBanned() {
+        return isBanned;
+    }
+
+    public void setBanned(Boolean banned) {
+        isBanned = banned;
     }
 }

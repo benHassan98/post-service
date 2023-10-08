@@ -11,7 +11,8 @@ public interface CommentService {
     public Optional<Comment> findCommentById(Long commentId);
     public List<Comment> findCommentsByPostId(Long postId);
     public List<Comment> findCommentsByAccountId(Long accountId);
-    public void deleteCommentById(Long commentId, Long deletingAccountId, String reason) throws NoSuchElementException;
+    public void deleteCommentById(Long commentId, Long deletingAccountId) throws NoSuchElementException;
+    public void banByCommentId(Long commentId);
 
 
 }

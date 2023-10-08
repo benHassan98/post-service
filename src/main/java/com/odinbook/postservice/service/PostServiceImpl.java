@@ -3,6 +3,7 @@ package com.odinbook.postservice.service;
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch.core.search.Hit;
 import co.elastic.clients.transport.endpoints.BooleanResponse;
+import com.odinbook.postservice.model.Comment;
 import com.odinbook.postservice.model.Post;
 import com.odinbook.postservice.repository.PostRepository;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -72,10 +73,10 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public void deletePostById(Long deletingAccountId,Long postId, String removeReason) throws IOException,NoSuchElementException{
+    public void deletePostById(Long postId) throws IOException,NoSuchElementException{
 
         Post post = findPostById(postId)
-                .orElseThrow(NoSuchElementException::new);
+                .orElseThrow();
 
         BooleanResponse indexExists = elasticsearchClient.indices().exists(e->e.index("posts-"+post.getAccountId().toString()));
 
@@ -87,30 +88,27 @@ public class PostServiceImpl implements PostService {
         }
 
         postRepository.deleteById(postId);
-        if(!deletingAccountId.equals(post.getAccountId())){
 
-            Object postRemovalObject = new Object(){
-                private final Post  removedPost = post;
-                private final Long  accountId = deletingAccountId;
-                private final String reason = removeReason;
-            };
+    }
 
+    @Override
+    public void banByPostId(Long postId) {
+        Post post = findPostById(postId)
+                .orElseThrow();
+        postRepository.updatePostByIdAndBanned(postId,true);
 
-            Message<Object> postMessage = MessageBuilder
-                    .withPayload(postRemovalObject)
-                    .setHeader("notificationType","removePost")
-                    .build();
+        Message<Post> postMessage = MessageBuilder
+                .withPayload(post)
+                .setHeader("notificationType","banPost")
+                .build();
 
-            notificationRequest.send(postMessage);
-
-        }
-
+        notificationRequest.send(postMessage);
     }
 
     @Override
     public void addLike(Long accountId, Long postId) throws NoSuchElementException {
         Post post = postRepository.findById(postId)
-                .orElseThrow(NoSuchElementException::new);
+                .orElseThrow();
 
         postRepository.addLike(accountId,postId);
 
@@ -126,7 +124,7 @@ public class PostServiceImpl implements PostService {
     @Override
     public void removeLike(Long accountId, Long postId) throws NoSuchElementException {
         Post post = postRepository.findById(postId)
-                .orElseThrow(NoSuchElementException::new);
+                .orElseThrow();
 
         postRepository.removeLike(accountId,postId);
 
