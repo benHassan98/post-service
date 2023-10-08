@@ -52,9 +52,9 @@ public class ImageServiceImpl implements ImageService{
         document
                 .select("img")
                 .replaceAll(element ->
-                        element.attributes().hasKey("class")?
+                        element.attributes().hasKey("is-new")?
                                 element.attr("src",imageList[index.getAndIncrement()].getName())
-                                        .removeAttr("class"):
+                                        .removeAttr("is-new"):
                                 element
                 );
 

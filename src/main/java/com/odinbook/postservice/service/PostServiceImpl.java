@@ -5,7 +5,11 @@ import co.elastic.clients.elasticsearch.core.search.Hit;
 import co.elastic.clients.transport.endpoints.BooleanResponse;
 import com.odinbook.postservice.model.Post;
 import com.odinbook.postservice.repository.PostRepository;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -15,13 +19,15 @@ import java.util.*;
 public class PostServiceImpl implements PostService {
 
     private final PostRepository postRepository;
-    private final ImageService imageService;
+    private final MessageChannel notificationRequest;
     private final ElasticsearchClient elasticsearchClient;
 
     @Autowired
-    public PostServiceImpl(PostRepository postRepository, ImageService imageService, ElasticsearchClient elasticsearchClient) {
+    public PostServiceImpl(PostRepository postRepository,
+                           @Qualifier("notificationRequest") MessageChannel notificationRequest,
+                           ElasticsearchClient elasticsearchClient) {
         this.postRepository = postRepository;
-        this.imageService = imageService;
+        this.notificationRequest = notificationRequest;
         this.elasticsearchClient = elasticsearchClient;
     }
 
@@ -41,6 +47,12 @@ public class PostServiceImpl implements PostService {
             exception.printStackTrace();
         }
 
+        Message<Post> postMessage = MessageBuilder
+                .withPayload(savedPost)
+                .setHeader("notificationType","newPost")
+                .build();
+
+        notificationRequest.send(postMessage);
         return savedPost;
     }
 
@@ -60,9 +72,9 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public void deletePostById(Long id) throws IOException,NoSuchElementException{
+    public void deletePostById(Long deletingAccountId,Long postId, String removeReason) throws IOException,NoSuchElementException{
 
-        Post post = findPostById(id)
+        Post post = findPostById(postId)
                 .orElseThrow(NoSuchElementException::new);
 
         BooleanResponse indexExists = elasticsearchClient.indices().exists(e->e.index("posts-"+post.getAccountId().toString()));
@@ -74,18 +86,57 @@ public class PostServiceImpl implements PostService {
             );
         }
 
-        postRepository.deleteById(id);
+        postRepository.deleteById(postId);
+        if(!deletingAccountId.equals(post.getAccountId())){
+
+            Object postRemovalObject = new Object(){
+                private final Post  removedPost = post;
+                private final Long  accountId = deletingAccountId;
+                private final String reason = removeReason;
+            };
+
+
+            Message<Object> postMessage = MessageBuilder
+                    .withPayload(postRemovalObject)
+                    .setHeader("notificationType","removePost")
+                    .build();
+
+            notificationRequest.send(postMessage);
+
+        }
 
     }
 
     @Override
-    public Boolean addLike(Long accountId, Long postId) {
-        return null;
+    public void addLike(Long accountId, Long postId) throws NoSuchElementException {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(NoSuchElementException::new);
+
+        postRepository.addLike(accountId,postId);
+
+        Message<Post> postMessage = MessageBuilder
+                .withPayload(post)
+                .setHeader("notificationType","addLike")
+                .build();
+
+        notificationRequest.send(postMessage);
+
     }
 
     @Override
-    public Boolean removeLike(Long accountId, Long postId) {
-        return null;
+    public void removeLike(Long accountId, Long postId) throws NoSuchElementException {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(NoSuchElementException::new);
+
+        postRepository.removeLike(accountId,postId);
+
+        Message<Post> postMessage = MessageBuilder
+                .withPayload(post)
+                .setHeader("notificationType","removeLike")
+                .build();
+
+        notificationRequest.send(postMessage);
+
     }
 
     @Override

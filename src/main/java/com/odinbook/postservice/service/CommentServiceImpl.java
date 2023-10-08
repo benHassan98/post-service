@@ -1,27 +1,44 @@
 package com.odinbook.postservice.service;
 
 import com.odinbook.postservice.model.Comment;
+import com.odinbook.postservice.model.Post;
 import com.odinbook.postservice.repository.CommentRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 @Service
 public class CommentServiceImpl implements CommentService{
 
     private final CommentRepository commentRepository;
+    private final MessageChannel notificationRequest;
 
     @Autowired
-    public CommentServiceImpl(CommentRepository commentRepository) {
+    public CommentServiceImpl(CommentRepository commentRepository,
+                             @Qualifier("notificationRequest") MessageChannel notificationRequest) {
         this.commentRepository = commentRepository;
+        this.notificationRequest = notificationRequest;
     }
 
+    @Transactional
     @Override
     public Comment createComment(Comment comment) {
+        Comment savedComment = commentRepository.saveAndFlush(comment);
+        Message<Comment> commentMessage = MessageBuilder
+                .withPayload(savedComment)
+                .setHeader("notificationType","newComment")
+                .build();
 
-        return commentRepository.saveAndFlush(comment);
+        notificationRequest.send(commentMessage);
+        return savedComment;
     }
 
     @Override
@@ -40,12 +57,26 @@ public class CommentServiceImpl implements CommentService{
     }
 
     @Override
-    public void deleteCommentById(Long commentId) {
+    public void deleteCommentById(Long commentId, Long deletingAccountId, String removeReason) throws NoSuchElementException {
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(NoSuchElementException::new);
+
         commentRepository.deleteById(commentId);
+
+        Object commentRemovalObject = new Object(){
+            private final Comment removedComment = comment;
+            private final Long  accountId = deletingAccountId;
+            private final String reason = removeReason;
+        };
+
+
+        Message<Object> commentMessage = MessageBuilder
+                .withPayload(commentRemovalObject)
+                .setHeader("notificationType","removeComment")
+                .build();
+
+        notificationRequest.send(commentMessage);
     }
 
-    @Override
-    public void deleteCommentsByPostId(Long postId) {
-        commentRepository.deleteCommentsByPostId(postId);
-    }
+
 }
