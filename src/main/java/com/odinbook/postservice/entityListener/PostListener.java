@@ -29,8 +29,7 @@ public class PostListener {
     }
     @PreRemove
     public void preRemove(Post post) {
-        imageService.deleteImages(post.getAccountId().toString()+post.getCreatedDate().getTime(),
-                post.getImageList());
+        imageService.deleteImages(post.getAccountId().toString()+post.getCreatedDate().getTime());
 
     }
 

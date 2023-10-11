@@ -79,18 +79,6 @@ public class CommentServiceImpl implements CommentService{
         }
     }
 
-    @Override
-    public void banByCommentId(Long commentId) {
-        Comment comment = commentRepository.findById(commentId)
-                        .orElseThrow();
-        commentRepository.updateCommentByIdAndIsBanned(commentId, true);
-        Message<Comment> commentMessage = MessageBuilder
-                .withPayload(comment)
-                .setHeader("notificationType","banComment")
-                .build();
-
-        notificationRequest.send(commentMessage);
-    }
 
 
 }

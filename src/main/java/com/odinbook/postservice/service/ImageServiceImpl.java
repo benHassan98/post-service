@@ -16,7 +16,7 @@ public class ImageServiceImpl implements ImageService{
     @Value("${spring.cloud.azure.storage.connection-string}")
     private String connectStr;
     @Override
-    public void createBlobs(String dir, MultipartFile[] imageList) {
+    public void createBlobs(String dir, MultipartFile[] imageList) throws RuntimeException{
         Arrays.stream(imageList).forEach((image)->{
             try {
                 new BlobServiceClientBuilder()
@@ -25,23 +25,11 @@ public class ImageServiceImpl implements ImageService{
                         .getBlobContainerClient("images")
                         .getBlobClient(dir+"/"+image.getName())
                         .upload(image.getInputStream());
-            } catch (IOException e) {
-                e.printStackTrace();
-
+            } catch (IOException exception) {
+                throw new RuntimeException(exception);
             }
 
         });
-    }
-
-    @Override
-    public byte[] findBlob(String blobName) {
-
-        return new BlobServiceClientBuilder()
-                .connectionString(connectStr)
-                .buildClient()
-                .getBlobContainerClient("images")
-                .getBlobClient(blobName)
-                .downloadContent().toBytes();
     }
 
     @Override
@@ -63,18 +51,14 @@ public class ImageServiceImpl implements ImageService{
     }
 
     @Override
-    public void deleteImages(String dir, MultipartFile[] imageList) {
+    public void deleteImages(String dir) {
 
-        Arrays.stream(imageList).forEach((image)->{
+        new BlobServiceClientBuilder()
+                .connectionString(connectStr)
+                .buildClient()
+                .getBlobContainerClient("images")
+                        .listBlobsByHierarchy(dir+"/")
+                                .forEach(blobItem -> blobItem.setDeleted(true));
 
-                new BlobServiceClientBuilder()
-                        .connectionString(connectStr)
-                        .buildClient()
-                        .getBlobContainerClient("images")
-                        .getBlobClient(dir+"/"+image.getName())
-                        .delete();
-
-
-        });
     }
 }

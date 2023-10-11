@@ -3,6 +3,7 @@ package com.odinbook.postservice.controller;
 import com.odinbook.postservice.model.Post;
 import com.odinbook.postservice.service.PostService;
 import com.odinbook.postservice.validation.PostForm;
+import io.netty.handler.codec.http.HttpResponseStatus;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Objects;
 
 @RestController
@@ -26,7 +28,7 @@ public class PostController {
         this.postService = postService;
     }
     @PostMapping("/create")
-    public ResponseEntity<?> createPost(@Valid @RequestBody PostForm postForm,
+    public ResponseEntity<?> createPost(@Valid @ModelAttribute PostForm postForm,
                                         BindingResult bindingResult){
 
         if(bindingResult.hasErrors()){
@@ -46,7 +48,7 @@ public class PostController {
 
         return postService.findPostById(id)
                 .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.badRequest().build());
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @GetMapping("/account/{accountId}")
@@ -54,14 +56,18 @@ public class PostController {
         return postService.findPostsByAccountId(accountId);
     }
 
-    @DeleteMapping("/{deletingAccountId}/")
-    public void deleteById(@PathVariable Long id){
-        try{
-            postService.deletePostById(id);
-        }
-        catch (IOException ioException){
-            throw new RuntimeException(ioException);
-        }
+    @DeleteMapping("/{postId}")
+    public void deleteById(@PathVariable Long postId) throws IOException,NoSuchElementException {
+        postService.deletePostById(postId);
+    }
+
+    @ExceptionHandler(value = NoSuchElementException.class)
+    public ResponseEntity<?> noSuchElementExceptionHandler(){
+        return ResponseEntity.notFound().build();
+    }
+    @ExceptionHandler(value = IOException.class)
+    public ResponseEntity<?> ioExceptionHandler(){
+        return ResponseEntity.status(HttpResponseStatus.BAD_GATEWAY.code()).build();
     }
 
 

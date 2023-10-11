@@ -1,6 +1,7 @@
 package com.odinbook.postservice.service;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.elasticsearch._types.ElasticsearchException;
 import co.elastic.clients.elasticsearch.core.search.Hit;
 import co.elastic.clients.transport.endpoints.BooleanResponse;
 import com.odinbook.postservice.model.Comment;
@@ -21,40 +22,49 @@ public class PostServiceImpl implements PostService {
 
     private final PostRepository postRepository;
     private final MessageChannel notificationRequest;
-    private final ElasticsearchClient elasticsearchClient;
+    private final ElasticSearchService elasticSearchService;
+    private final ImageService imageService;
 
     @Autowired
     public PostServiceImpl(PostRepository postRepository,
                            @Qualifier("notificationRequest") MessageChannel notificationRequest,
-                           ElasticsearchClient elasticsearchClient) {
+                           ElasticSearchService elasticSearchService,
+                           ImageService imageService) {
         this.postRepository = postRepository;
         this.notificationRequest = notificationRequest;
-        this.elasticsearchClient = elasticsearchClient;
+        this.elasticSearchService = elasticSearchService;
+        this.imageService = imageService;
     }
 
     @Override
     public Post createPost(Post post){
 
-        Post savedPost = postRepository.saveAndFlush(post);
+        post.setId(postRepository.saveAndFlush(post).getId());
 
         try{
-            elasticsearchClient.index(idx->idx
-                    .index("posts-"+savedPost.getAccountId().toString())
-                    .id(savedPost.getId().toString())
-                    .document(savedPost)
-            );
+            imageService.createBlobs(
+                    post.getId().toString(),
+                    post.getImageList());
+            String newContent = imageService.injectImagesToHTML(post.getContent(), post.getImageList());
+            post.setContent(newContent);
         }
-        catch (IOException exception){
+        catch (RuntimeException exception){
+            exception.printStackTrace();
+        }
+        try{
+            elasticSearchService.insertPost(post);
+        }
+        catch (IOException | ElasticsearchException exception){
             exception.printStackTrace();
         }
 
         Message<Post> postMessage = MessageBuilder
-                .withPayload(savedPost)
+                .withPayload(post)
                 .setHeader("notificationType","newPost")
                 .build();
 
         notificationRequest.send(postMessage);
-        return savedPost;
+        return postRepository.saveAndFlush(post);
     }
 
     @Override
@@ -73,36 +83,51 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public void deletePostById(Long postId) throws IOException,NoSuchElementException{
+    public Optional<Post> updatePost(Post newPost){
 
-        Post post = findPostById(postId)
-                .orElseThrow();
+     return postRepository.findById(newPost.getId())
+             .map((oldPost)->{
 
-        BooleanResponse indexExists = elasticsearchClient.indices().exists(e->e.index("posts-"+post.getAccountId().toString()));
+                 try{
+                     imageService.createBlobs(
+                             newPost.getId().toString(),
+                             newPost.getImageList());
+                     String newContent = imageService.injectImagesToHTML(
+                             newPost.getContent(),
+                             newPost.getImageList());
 
-        if(indexExists.value()){
-            elasticsearchClient.delete(r->r
-                    .index("posts-"+post.getAccountId().toString())
-                    .id(post.getId().toString())
-            );
-        }
+                     newPost.setContent(newContent);
+                 }
+                 catch (RuntimeException exception){
+                     exception.printStackTrace();
+                 }
+                 try{
+                     elasticSearchService.updatePost(newPost);
+                 }
+                 catch (IOException | ElasticsearchException exception){
+                     exception.printStackTrace();
+                 }
 
-        postRepository.deleteById(postId);
-
+                 return postRepository.saveAndFlush(newPost);
+             });
     }
 
     @Override
-    public void banByPostId(Long postId) {
+    public void deletePostById(Long postId) throws NoSuchElementException{
+
         Post post = findPostById(postId)
                 .orElseThrow();
-        postRepository.updatePostByIdAndBanned(postId,true);
 
-        Message<Post> postMessage = MessageBuilder
-                .withPayload(post)
-                .setHeader("notificationType","banPost")
-                .build();
+        imageService.deleteImages(post.getId().toString());
 
-        notificationRequest.send(postMessage);
+        try{
+            elasticSearchService.deletePost(post);
+        }
+        catch (IOException | ElasticsearchException exception){
+            exception.printStackTrace();
+        }
+        postRepository.deleteById(postId);
+
     }
 
     @Override
@@ -140,20 +165,9 @@ public class PostServiceImpl implements PostService {
     @Override
     public List<Post> searchPostsByContent(String accountId, String searchContent){
         try{
-            return  elasticsearchClient.search(s->s
-                            .index("posts-"+accountId)
-                            .query(q->q
-                                    .match(v->v
-                                            .field("content")
-                                            .query(searchContent)
-                                            .fuzziness("AUTO"))
-                            )
-                    ,
-                    Post.class
-            ).hits().hits().stream().map(Hit::source).toList();
-
+            return  elasticSearchService.searchPostsByContent(accountId,searchContent);
         }
-        catch (IOException exception){
+        catch (IOException | ElasticsearchException exception){
             exception.printStackTrace();
             return Collections.emptyList();
         }

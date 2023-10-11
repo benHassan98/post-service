@@ -2,7 +2,6 @@ package com.odinbook.postservice.model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.odinbook.postservice.entityListener.CommentListener;
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.springframework.web.multipart.MultipartFile;
@@ -10,7 +9,6 @@ import org.springframework.web.multipart.MultipartFile;
 import java.sql.Date;
 
 @Entity
-@EntityListeners(value = CommentListener.class)
 @Table(name = "comments")
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Comment {
@@ -27,8 +25,6 @@ public class Comment {
     @Column(name = "content")
     private String content;
 
-    @Column(name = "is_banned")
-    private Boolean isBanned;
     @Transient
     private MultipartFile[] imageList;
 
@@ -80,11 +76,5 @@ public class Comment {
         this.imageList = imageList;
     }
 
-    public Boolean getBanned() {
-        return isBanned;
-    }
 
-    public void setBanned(Boolean banned) {
-        isBanned = banned;
-    }
 }

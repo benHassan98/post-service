@@ -45,5 +45,5 @@ public interface PostRepository extends JpaRepository<Post,Long> {
     public void addFollowersVisibility(@Param("postId") Long postId,@Param("isVisible") Boolean isVisible);
     @Query(value = "INSERT INTO posts_visibility_type VALUES (:postId,:visibilityType)",nativeQuery = true)
     public void addPostVisibilityType(@Param("postId") Long postId,@Param("visibilityType") Boolean visibilityType);
-    public void updatePostByIdAndBanned(Long postId, Boolean isBanned);
+
 }

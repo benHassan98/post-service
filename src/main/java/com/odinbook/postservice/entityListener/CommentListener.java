@@ -27,8 +27,7 @@ public class CommentListener {
 
     @PreRemove
     public void preRemove(Comment comment) {
-        imageService.deleteImages(comment.getAccountId().toString()+comment.getCreatedDate().getTime(),
-                comment.getImageList());
+        imageService.deleteImages(comment.getAccountId().toString()+comment.getCreatedDate().getTime());
     }
 
 }
