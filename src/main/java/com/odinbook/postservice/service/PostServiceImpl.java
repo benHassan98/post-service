@@ -22,17 +22,14 @@ public class PostServiceImpl implements PostService {
 
     private final PostRepository postRepository;
     private final MessageChannel notificationRequest;
-    private final ElasticSearchService elasticSearchService;
     private final ImageService imageService;
 
     @Autowired
     public PostServiceImpl(PostRepository postRepository,
                            @Qualifier("notificationRequest") MessageChannel notificationRequest,
-                           ElasticSearchService elasticSearchService,
                            ImageService imageService) {
         this.postRepository = postRepository;
         this.notificationRequest = notificationRequest;
-        this.elasticSearchService = elasticSearchService;
         this.imageService = imageService;
     }
 
@@ -49,12 +46,6 @@ public class PostServiceImpl implements PostService {
             post.setContent(newContent);
         }
         catch (RuntimeException exception){
-            exception.printStackTrace();
-        }
-        try{
-            elasticSearchService.insertPost(post);
-        }
-        catch (IOException | ElasticsearchException exception){
             exception.printStackTrace();
         }
 
@@ -101,12 +92,6 @@ public class PostServiceImpl implements PostService {
                  catch (RuntimeException exception){
                      exception.printStackTrace();
                  }
-                 try{
-                     elasticSearchService.updatePost(newPost);
-                 }
-                 catch (IOException | ElasticsearchException exception){
-                     exception.printStackTrace();
-                 }
 
                  return postRepository.saveAndFlush(newPost);
              });
@@ -120,12 +105,6 @@ public class PostServiceImpl implements PostService {
 
         imageService.deleteImages(post.getId().toString());
 
-        try{
-            elasticSearchService.deletePost(post);
-        }
-        catch (IOException | ElasticsearchException exception){
-            exception.printStackTrace();
-        }
         postRepository.deleteById(postId);
 
     }
@@ -160,16 +139,5 @@ public class PostServiceImpl implements PostService {
 
         notificationRequest.send(postMessage);
 
-    }
-
-    @Override
-    public List<Post> searchPostsByContent(String accountId, String searchContent){
-        try{
-            return  elasticSearchService.searchPostsByContent(accountId,searchContent);
-        }
-        catch (IOException | ElasticsearchException exception){
-            exception.printStackTrace();
-            return Collections.emptyList();
-        }
     }
 }

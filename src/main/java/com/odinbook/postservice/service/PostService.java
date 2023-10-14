@@ -16,7 +16,6 @@ public interface PostService {
     public void deletePostById(Long postId) throws IOException, NoSuchElementException;
     public void addLike(Long accountId,Long postId) throws NoSuchElementException ;
     public void removeLike(Long accountId,Long postId) throws NoSuchElementException ;
-    public List<Post> searchPostsByContent(String accountId,String searchContent);
 
 
 }

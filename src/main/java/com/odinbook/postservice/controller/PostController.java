@@ -56,6 +56,13 @@ public class PostController {
         return postService.findPostsByAccountId(accountId);
     }
 
+    @PutMapping("/update")
+    public ResponseEntity<?> updatePost(@RequestBody Post post){
+        return postService.updatePost(post)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
     @DeleteMapping("/{postId}")
     public void deleteById(@PathVariable Long postId) throws IOException,NoSuchElementException {
         postService.deletePostById(postId);
