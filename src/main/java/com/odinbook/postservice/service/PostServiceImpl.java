@@ -37,7 +37,7 @@ public class PostServiceImpl implements PostService {
 
         try{
             imageService.createBlobs(
-                    post.getId().toString(),
+                    "post."+post.getId().toString(),
                     post.getImageList());
             String newContent = imageService.injectImagesToHTML(post.getContent(), post.getImageList());
             post.setContent(newContent);
@@ -78,7 +78,7 @@ public class PostServiceImpl implements PostService {
 
                  try{
                      imageService.createBlobs(
-                             newPost.getId().toString(),
+                             "post."+newPost.getId().toString(),
                              newPost.getImageList());
                      String newContent = imageService.injectImagesToHTML(
                              newPost.getContent(),

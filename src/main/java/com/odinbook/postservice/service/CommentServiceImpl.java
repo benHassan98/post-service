@@ -47,7 +47,7 @@ public class CommentServiceImpl implements CommentService{
 
         try{
             imageService.createBlobs(
-                    comment.getId().toString(),
+                    "comment."+comment.getId().toString(),
                     comment.getImageList());
             String newContent = imageService.injectImagesToHTML(comment.getContent(), comment.getImageList());
             comment.setContent(newContent);
