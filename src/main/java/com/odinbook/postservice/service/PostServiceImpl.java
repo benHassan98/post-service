@@ -1,10 +1,7 @@
 package com.odinbook.postservice.service;
 
-import co.elastic.clients.elasticsearch.ElasticsearchClient;
-import co.elastic.clients.elasticsearch._types.ElasticsearchException;
-import co.elastic.clients.elasticsearch.core.search.Hit;
-import co.elastic.clients.transport.endpoints.BooleanResponse;
-import com.odinbook.postservice.model.Comment;
+
+
 import com.odinbook.postservice.model.Post;
 import com.odinbook.postservice.repository.PostRepository;
 import org.springframework.beans.factory.annotation.Qualifier;

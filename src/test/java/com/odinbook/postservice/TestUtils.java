@@ -6,6 +6,7 @@ import com.odinbook.postservice.repository.CommentRepository;
 import com.odinbook.postservice.repository.PostRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -32,35 +33,66 @@ public class TestUtils {
 
         return salt.toString();
     }
+
+    @Transactional
     public Long createRandomAccount(){
         String fullName = getSaltString();
         String userName = getSaltString();
         String email = getSaltString()+"@gmail.com";
         String roles = "ROLE_USER";
         String password = "password";
+        String picture = "picture";
+
         entityManager
-                .createNativeQuery("INSERT INTO accounts (fullname, username, email, roles, password)" +
-                        " VALUES (:fullname,:username,:email,:roles,:password)")
+                .createNativeQuery("INSERT INTO accounts (fullname, username, email, roles, password, picture)" +
+                        " VALUES (:fullname,:username,:email,:roles,:password,:picture)")
                 .setParameter("fullname",fullName)
                 .setParameter("username",userName)
                 .setParameter("email",email)
                 .setParameter("roles",roles)
                 .setParameter("password",password)
+                .setParameter("picture",picture)
                 .executeUpdate();
 
 
-
-
-        return (Long) entityManager.createNativeQuery("SELECT id FROM accounts WHERE username = :username")
+        return Long.valueOf( entityManager.createNativeQuery("SELECT id FROM accounts WHERE username = :username")
                 .setParameter("username",userName)
-                .getSingleResult();
+                .getSingleResult().toString()
+        );
     }
+    @Transactional
+    public void addFriends(Long addingId, Long addedId){
+
+        entityManager
+                .createNativeQuery("INSERT INTO friends VALUES (:adding_id, :added_id)")
+                .setParameter("adding_id",addingId)
+                .setParameter("added_id",addedId)
+                .executeUpdate();
+
+    }
+
+    @Transactional
+    public void addFollower(Long followerId, Long followeeId){
+
+        entityManager
+                .createNativeQuery("INSERT INTO followers VALUES (:follower_id, :followee_id)")
+                .setParameter("follower_id",followerId)
+                .setParameter("followee_id",followeeId)
+                .executeUpdate();
+
+    }
+
+
+    @Transactional
     public void deleteAccounts(){
+
         entityManager
                 .createNativeQuery("DELETE FROM accounts WHERE id > 1")
                 .executeUpdate();
+
     }
 
+    @Transactional
     public Post createRandomPost(){
         Long accountId = createRandomAccount();
         Post post = new Post();
@@ -72,6 +104,7 @@ public class TestUtils {
         return postRepository.saveAndFlush(post);
     }
 
+    @Transactional
     public Comment createRandomComment(){
         Long accountId = createRandomAccount();
         Post post = createRandomPost();
@@ -93,6 +126,7 @@ public class TestUtils {
         return postRepository.saveAndFlush(post);
     }
 
+    @Transactional
     public Post createRandomPostNotVisibleToFollowers(){
         Long accountId = createRandomAccount();
         Post post = new Post();

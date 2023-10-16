@@ -22,19 +22,20 @@ import java.util.Optional;
 
 @Service
 public class CommentServiceImpl implements CommentService{
-    @Value("${spring.cloud.azure.pubsub.connection-string}")
-    private String webPubSubConnectStr;
 
     private final CommentRepository commentRepository;
     private final ImageService imageService;
+    private final WebPubSubService webPubSubService;
     private final MessageChannel notificationRequest;
 
     @Autowired
     public CommentServiceImpl(CommentRepository commentRepository,
                              ImageService imageService,
+                             WebPubSubService webPubSubService,
                              @Qualifier("notificationRequest") MessageChannel notificationRequest) {
         this.commentRepository = commentRepository;
         this.imageService = imageService;
+        this.webPubSubService = webPubSubService;
         this.notificationRequest = notificationRequest;
     }
 
@@ -63,27 +64,12 @@ public class CommentServiceImpl implements CommentService{
 
         notificationRequest.send(commentMessage);
         try{
-            this.sendNewCommentToUsers(comment);
+            webPubSubService.sendNewCommentToUsers(comment);
         }
         catch (JsonProcessingException exception){
             exception.printStackTrace();
         }
         return commentRepository.saveAndFlush(comment);
-    }
-
-    @Override
-    public void sendNewCommentToUsers(Comment comment) throws JsonProcessingException {
-        String jsonString = new ObjectMapper().writeValueAsString(comment);
-
-        new WebPubSubServiceClientBuilder()
-                .connectionString(webPubSubConnectStr)
-                .hub("posts")
-                .buildClient()
-                .sendToGroup(
-                        comment.getPost().getId()+".newComment",
-                        jsonString,
-                        WebPubSubContentType.APPLICATION_JSON);
-
     }
 
     @Override
@@ -110,27 +96,11 @@ public class CommentServiceImpl implements CommentService{
 
         imageService.deleteImages(comment.getId().toString());
 
-        sendRemovedCommentIdToUsers(commentId);
-    }
-
-    @Override
-    public void sendRemovedCommentIdToUsers(Long commentId) throws NoSuchElementException{
-
-        Comment comment = commentRepository.findById(commentId)
-                .orElseThrow();
-
-        new WebPubSubServiceClientBuilder()
-                .connectionString(webPubSubConnectStr)
-                .hub("posts")
-                .buildClient()
-                .sendToGroup(
-                        comment.getPost().getId()+".removeComment",
-                        commentId.toString(),
-                        WebPubSubContentType.TEXT_PLAIN);
-
-
+        webPubSubService.sendRemovedCommentIdToUsers(comment);
 
     }
+
+
 
 
 }

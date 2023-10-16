@@ -43,7 +43,7 @@ public class ImageServiceImpl implements ImageService{
                         element.attributes().hasKey("is-new")?
                                 element.attr("src",imageList[index.getAndIncrement()].getName())
                                         .removeAttr("is-new"):
-                                element
+                                element.removeAttr("is-new")
                 );
 
         return document.body().html();

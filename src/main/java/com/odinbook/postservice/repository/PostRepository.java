@@ -34,7 +34,6 @@ public interface PostRepository extends JpaRepository<Post,Long> {
             )
             )""",nativeQuery = true)
     public List<Post> findPostsByAccountId(@Param("accountId") Long accountId);
-    public List<Post> findPostsBySharedFromPostIsNull();
     @Query(value = "INSERT INTO likes(account_id,post_id) VALUES (:accountId,:postId)",nativeQuery = true)
     public void addLike(@Param("accountId") Long accountId, @Param("postId") Long postId);
 

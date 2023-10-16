@@ -1,5 +1,7 @@
 package com.odinbook.postservice.validation;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.odinbook.postservice.model.Comment;
 import com.odinbook.postservice.model.Post;
 import jakarta.validation.constraints.NotEmpty;
@@ -35,8 +37,9 @@ public class CommentForm {
         return post;
     }
 
-    public void setPost(Post post) {
-        this.post = post;
+    public void setPost(String postJson) throws JsonProcessingException {
+
+        this.post = new ObjectMapper().readValue(postJson,Post.class);
     }
 
     public String getContent() {

@@ -1,5 +1,7 @@
 package com.odinbook.postservice.validation;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.odinbook.postservice.model.Post;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -45,8 +47,8 @@ public class PostForm {
     public String getContent(){
         return this.content;
     }
-    public void setSharedFromPost(Post sharedFromPost) {
-        this.sharedFromPost = sharedFromPost;
+    public void setSharedFromPost(String sharedFromPostJson) throws JsonProcessingException {
+        this.sharedFromPost = new ObjectMapper().readValue(sharedFromPostJson,Post.class);
     }
 
     public Post getSharedFromPost(){
