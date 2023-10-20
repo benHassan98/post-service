@@ -8,7 +8,11 @@ import com.azure.messaging.webpubsub.WebPubSubServiceClientBuilder;
 import com.azure.messaging.webpubsub.models.WebPubSubContentType;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.odinbook.postservice.model.Comment;
 import com.odinbook.postservice.model.Post;
+import com.odinbook.postservice.record.CommentRecord;
+import com.odinbook.postservice.record.LikeNotificationRecord;
+import com.odinbook.postservice.record.PostRecord;
 import com.odinbook.postservice.repository.PostRepository;
 import com.odinbook.postservice.service.ImageServiceImpl;
 import com.odinbook.postservice.validation.PostForm;
@@ -27,12 +31,15 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -52,7 +59,7 @@ public class PostTest {
     private MockMvc mockMvc;
     @MockBean
     private ImageServiceImpl imageService;
-    @MockBean
+    @Autowired
     @Qualifier("notificationRequest")
     private MessageChannel notificationRequest;
 
@@ -71,9 +78,9 @@ public class PostTest {
                 .doNothing()
                 .when(imageService)
                 .deleteImages(anyString());
-        Mockito
-                .when(notificationRequest.send(any()))
-                .thenReturn(true);
+//        Mockito
+//                .when(notificationRequest.send(any()))
+//                .thenReturn(true);
 
     }
     @AfterEach
@@ -284,5 +291,59 @@ public class PostTest {
 
 
     }
+
+    @Test
+    public void tsPost(){
+        Post post = testUtils.createRandomPost();
+        PostRecord postRecord = new PostRecord(
+                post.getId(),
+                post.getAccountId(),
+                Objects.nonNull(post.getSharedFromPost()),
+                post.getVisibleToFollowers(),
+                post.getFriendsVisibilityType(),
+                post.getVisibleToFriendList()
+        );
+
+        Message<PostRecord> notificationMessage = MessageBuilder
+                .withPayload(postRecord)
+                .setHeader("notificationType","newPost")
+                .build();
+
+        notificationRequest.send(notificationMessage);
+
+    }
+    @Test
+    public void tsComment(){
+        Comment comment = testUtils.createRandomComment();
+
+        CommentRecord commentRecord = new CommentRecord(
+                comment.getId(),
+                comment.getPost().getId(),
+                comment.getAccountId()
+        );
+
+        Message<CommentRecord> notificationMessage = MessageBuilder
+                .withPayload(commentRecord)
+                .setHeader("notificationType","newComment")
+                .build();
+
+        notificationRequest.send(notificationMessage);
+
+    }
+
+    @Test
+    public void tsLike(){
+        Post post = testUtils.createRandomPost();
+
+        Message<LikeNotificationRecord> notificationMessage = MessageBuilder
+                .withPayload(new LikeNotificationRecord(post.getId(), post.getAccountId(), 100L))
+                .setHeader("notificationType","newLike")
+                .build();
+
+        notificationRequest.send(notificationMessage);
+
+    }
+
+
 
 }

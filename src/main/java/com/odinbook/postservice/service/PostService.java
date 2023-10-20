@@ -15,7 +15,7 @@ public interface PostService {
     public Optional<Post> updatePost(Post newPost);
     public void deletePostById(Long postId) throws IOException, NoSuchElementException;
     public void addLike(Long accountId,Long postId) throws NoSuchElementException ;
-    public void removeLike(Long accountId,Long postId) throws NoSuchElementException ;
+    public void removeLike(Long accountId,Long postId);
 
 
 }

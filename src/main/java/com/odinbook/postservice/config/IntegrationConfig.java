@@ -6,6 +6,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.integration.amqp.dsl.Amqp;
+import org.springframework.integration.amqp.outbound.AmqpOutboundEndpoint;
+import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.annotation.Transformer;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.dsl.IntegrationFlow;
@@ -30,12 +32,11 @@ public class IntegrationConfig {
     public MessageChannel toRabbit() {
         return new DirectChannel();
     }
+    @ServiceActivator(inputChannel = "toRabbit")
     @Bean
-    public IntegrationFlow amqpOutbound(AmqpTemplate amqpTemplate,
-                                      @Qualifier("toRabbit") MessageChannel amqpOutboundChannel) {
-        return IntegrationFlow.from(amqpOutboundChannel)
-                .handle(Amqp.outboundAdapter(amqpTemplate)
-                        .routingKey("odinBook.notificationChannel"))
-                .get();
+    public AmqpOutboundEndpoint amqpOutboundEndpoint(AmqpTemplate amqpTemplate) {
+        AmqpOutboundEndpoint adapter = new AmqpOutboundEndpoint(amqpTemplate);
+        adapter.setRoutingKey("odinBook.notificationChannel");
+        return adapter;
     }
 }

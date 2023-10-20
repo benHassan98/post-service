@@ -6,6 +6,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.odinbook.postservice.model.Comment;
 import com.odinbook.postservice.model.Post;
+import com.odinbook.postservice.record.CommentRecord;
 import com.odinbook.postservice.repository.CommentRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,13 +57,18 @@ public class CommentServiceImpl implements CommentService{
             exception.printStackTrace();
         }
 
+        CommentRecord commentRecord = new CommentRecord(
+                comment.getId(),
+                comment.getPost().getId(),
+                comment.getAccountId()
+        );
 
-        Message<Comment> commentMessage = MessageBuilder
-                .withPayload(comment)
+        Message<CommentRecord> notificationMessage = MessageBuilder
+                .withPayload(commentRecord)
                 .setHeader("notificationType","newComment")
                 .build();
 
-        notificationRequest.send(commentMessage);
+        notificationRequest.send(notificationMessage);
         try{
             webPubSubService.sendNewCommentToUsers(comment);
         }

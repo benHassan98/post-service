@@ -13,34 +13,34 @@ import java.util.NoSuchElementException;
 @Service
 public class WebPubSubServiceImpl implements WebPubSubService{
 
-    @Value("${spring.cloud.azure.pubsub.connection-string}")
-    private String webPubSubConnectStr;
+//    @Value("${spring.cloud.azure.pubsub.connection-string}")
+//    private String webPubSubConnectStr;
     @Override
     public void sendNewCommentToUsers(Comment comment) throws JsonProcessingException {
         String jsonString = new ObjectMapper().writeValueAsString(comment);
 
-        new WebPubSubServiceClientBuilder()
-                .connectionString(webPubSubConnectStr)
-                .hub("posts")
-                .buildClient()
-                .sendToGroup(
-                        comment.getPost().getId()+".newComment",
-                        jsonString,
-                        WebPubSubContentType.APPLICATION_JSON);
+//        new WebPubSubServiceClientBuilder()
+//                .connectionString(webPubSubConnectStr)
+//                .hub("posts")
+//                .buildClient()
+//                .sendToGroup(
+//                        comment.getPost().getId()+".newComment",
+//                        jsonString,
+//                        WebPubSubContentType.APPLICATION_JSON);
 
     }
 
     @Override
     public void sendRemovedCommentIdToUsers(Comment comment){
 
-        new WebPubSubServiceClientBuilder()
-                .connectionString(webPubSubConnectStr)
-                .hub("posts")
-                .buildClient()
-                .sendToGroup(
-                        comment.getPost().getId()+".removeComment",
-                        comment.getId().toString(),
-                        WebPubSubContentType.TEXT_PLAIN);
+//        new WebPubSubServiceClientBuilder()
+//                .connectionString(webPubSubConnectStr)
+//                .hub("posts")
+//                .buildClient()
+//                .sendToGroup(
+//                        comment.getPost().getId()+".removeComment",
+//                        comment.getId().toString(),
+//                        WebPubSubContentType.TEXT_PLAIN);
 
 
     }

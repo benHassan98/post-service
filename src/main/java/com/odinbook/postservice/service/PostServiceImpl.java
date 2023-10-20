@@ -3,6 +3,8 @@ package com.odinbook.postservice.service;
 
 
 import com.odinbook.postservice.model.Post;
+import com.odinbook.postservice.record.LikeNotificationRecord;
+import com.odinbook.postservice.record.PostRecord;
 import com.odinbook.postservice.repository.PostRepository;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.messaging.support.MessageBuilder;
@@ -12,6 +14,7 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+
 import java.util.*;
 
 @Service
@@ -45,13 +48,21 @@ public class PostServiceImpl implements PostService {
         catch (RuntimeException exception){
             exception.printStackTrace();
         }
+        PostRecord postRecord = new PostRecord(
+                post.getId(),
+                post.getAccountId(),
+                Objects.nonNull(post.getSharedFromPost()),
+                post.getVisibleToFollowers(),
+                post.getFriendsVisibilityType(),
+                post.getVisibleToFriendList()
+        );
 
-        Message<Post> postMessage = MessageBuilder
-                .withPayload(post)
+        Message<PostRecord> notificationMessage = MessageBuilder
+                .withPayload(postRecord)
                 .setHeader("notificationType","newPost")
                 .build();
 
-        notificationRequest.send(postMessage);
+        notificationRequest.send(notificationMessage);
         return postRepository.saveAndFlush(post);
     }
 
@@ -113,28 +124,21 @@ public class PostServiceImpl implements PostService {
 
         postRepository.addLike(accountId,postId);
 
-        Message<Post> postMessage = MessageBuilder
-                .withPayload(post)
-                .setHeader("notificationType","addLike")
+
+
+        Message<LikeNotificationRecord> notificationMessage = MessageBuilder
+                .withPayload(new LikeNotificationRecord(postId, post.getAccountId(), accountId))
+                .setHeader("notificationType","newLike")
                 .build();
 
-        notificationRequest.send(postMessage);
+        notificationRequest.send(notificationMessage);
 
     }
 
     @Override
-    public void removeLike(Long accountId, Long postId) throws NoSuchElementException {
-        Post post = postRepository.findById(postId)
-                .orElseThrow();
+    public void removeLike(Long accountId, Long postId){
 
         postRepository.removeLike(accountId,postId);
-
-        Message<Post> postMessage = MessageBuilder
-                .withPayload(post)
-                .setHeader("notificationType","removeLike")
-                .build();
-
-        notificationRequest.send(postMessage);
 
     }
 }
