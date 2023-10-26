@@ -16,6 +16,7 @@ import org.springframework.messaging.MessageChannel;
 
 
 @Configuration
+@Profile("default")
 public class IntegrationConfig {
 
     @Bean

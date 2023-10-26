@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Service;
 
@@ -26,18 +27,18 @@ public class CommentServiceImpl implements CommentService{
 
     private final CommentRepository commentRepository;
     private final ImageService imageService;
-    private final WebPubSubService webPubSubService;
     private final MessageChannel notificationRequest;
+    private final STOMPService stompService;
 
     @Autowired
     public CommentServiceImpl(CommentRepository commentRepository,
                              ImageService imageService,
-                             WebPubSubService webPubSubService,
-                             @Qualifier("notificationRequest") MessageChannel notificationRequest) {
+                             @Qualifier("notificationRequest") MessageChannel notificationRequest,
+                              STOMPService stompService) {
         this.commentRepository = commentRepository;
         this.imageService = imageService;
-        this.webPubSubService = webPubSubService;
         this.notificationRequest = notificationRequest;
+        this.stompService = stompService;
     }
 
 
@@ -69,12 +70,9 @@ public class CommentServiceImpl implements CommentService{
                 .build();
 
         notificationRequest.send(notificationMessage);
-        try{
-            webPubSubService.sendNewCommentToUsers(comment);
-        }
-        catch (JsonProcessingException exception){
-            exception.printStackTrace();
-        }
+
+        stompService.sendNewCommentToAccounts(comment);
+
         return commentRepository.saveAndFlush(comment);
     }
 
@@ -102,7 +100,7 @@ public class CommentServiceImpl implements CommentService{
 
         imageService.deleteImages(comment.getId().toString());
 
-        webPubSubService.sendRemovedCommentIdToUsers(comment);
+        stompService.sendRemovedCommentToAccounts(comment);
 
     }
 

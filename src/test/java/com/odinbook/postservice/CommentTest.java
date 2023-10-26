@@ -1,19 +1,16 @@
 package com.odinbook.postservice;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.odinbook.postservice.model.Comment;
 import com.odinbook.postservice.model.Post;
 import com.odinbook.postservice.repository.CommentRepository;
 import com.odinbook.postservice.repository.PostRepository;
-import com.odinbook.postservice.service.CommentServiceImpl;
 import com.odinbook.postservice.service.ImageServiceImpl;
-import com.odinbook.postservice.service.WebPubSubServiceImpl;
+import com.odinbook.postservice.service.STOMPServiceImpl;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -22,10 +19,10 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
-
-import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.*;
@@ -46,14 +43,14 @@ public class CommentTest {
     @MockBean
     private ImageServiceImpl imageService;
     @MockBean
-    private WebPubSubServiceImpl webPubSubService;
+    private STOMPServiceImpl stompService;
     @MockBean
     @Qualifier("notificationRequest")
     private MessageChannel notificationRequest;
 
 
     @BeforeEach
-    public void beforeEach() throws JsonProcessingException {
+    public void beforeEach(){
         commentRepository.deleteAll();
         postRepository.deleteAll();
         testUtils.deleteAccounts();
@@ -73,14 +70,12 @@ public class CommentTest {
                 .thenReturn(true);
         Mockito
                 .doNothing()
-                .when(webPubSubService)
-                .sendNewCommentToUsers(any());
+                .when(stompService)
+                .sendNewCommentToAccounts(any());
         Mockito
                 .doNothing()
-                .when(webPubSubService)
-                .sendRemovedCommentIdToUsers(any());
-
-
+                .when(stompService)
+                .sendRemovedLikeToAccounts(any());
 
     }
 

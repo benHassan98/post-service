@@ -16,6 +16,8 @@ import com.odinbook.postservice.record.PostRecord;
 import com.odinbook.postservice.repository.PostRepository;
 import com.odinbook.postservice.service.ImageServiceImpl;
 import com.odinbook.postservice.validation.PostForm;
+import org.java_websocket.client.WebSocketClient;
+import org.java_websocket.handshake.ServerHandshake;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
@@ -37,6 +39,9 @@ import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.http.WebSocket;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -344,6 +349,31 @@ public class PostTest {
 
     }
 
+    @Test
+    public void ts() throws URISyntaxException {
+        WebSocketClient webSocketClient = new WebSocketClient(new URI("")) {
+            @Override
+            public void onOpen(ServerHandshake serverHandshake) {
+
+            }
+
+            @Override
+            public void onMessage(String s) {
+
+            }
+
+            @Override
+            public void onClose(int i, String s, boolean b) {
+
+            }
+
+            @Override
+            public void onError(Exception e) {
+
+            }
+        };
+
+    }
 
 
 }
