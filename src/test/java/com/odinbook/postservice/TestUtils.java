@@ -51,7 +51,7 @@ public class TestUtils {
                 .setParameter("email",email)
                 .setParameter("roles",roles)
                 .setParameter("password",password)
-                .setParameter("picture",picture)
+                .setParameter("dumb.jpg",picture)
                 .executeUpdate();
 
 
@@ -87,7 +87,7 @@ public class TestUtils {
     public void deleteAccounts(){
 
         entityManager
-                .createNativeQuery("DELETE FROM accounts WHERE id > 1")
+                .createNativeQuery("DELETE FROM accounts WHERE id > 0")
                 .executeUpdate();
 
     }
@@ -97,7 +97,7 @@ public class TestUtils {
         Long accountId = createRandomAccount();
         Post post = new Post();
         post.setAccountId(accountId);
-        post.setContent(getSaltString());
+        post.setContent("iam "+getSaltString()+" <img src='dumb.jpg' alt='dumb' class='w-32 h-32'/>  ");
         post.setVisibleToFollowers(true);
         post.setFriendsVisibilityType(false);
 

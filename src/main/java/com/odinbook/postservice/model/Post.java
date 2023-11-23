@@ -3,11 +3,13 @@ package com.odinbook.postservice.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.odinbook.postservice.DTO.ImageDTO;
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.sql.Date;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,7 +26,7 @@ public class Post {
     private String content;
 
     @Transient
-    private MultipartFile[] imageList;
+    private List<ImageDTO> imageList;
 
     @ManyToOne
     @JoinColumn(name = "shared_from_post_id")
@@ -39,9 +41,13 @@ public class Post {
     @OneToMany(mappedBy = "post")
     private final List<Comment> commentsList = new ArrayList<>();
 
+    @Column(name = "is_edited")
+    private Boolean isEdited = false;
     @Column(name = "is_followers_visible")
     private Boolean isVisibleToFollowers;
 
+    @Column(name = "is_deleted")
+    private Boolean isDeleted = false;
 
     @Column(name = "friends_visibility_type")
     private Boolean friendsVisibilityType;
@@ -53,9 +59,9 @@ public class Post {
 
     @Column(name = "created_date", nullable = false, updatable = false)
     @CreationTimestamp
-    private Date createdDate;
+    private Instant createdDate;
 
-    public Date getCreatedDate() {
+    public Instant getCreatedDate() {
         return createdDate;
     }
 
@@ -123,12 +129,31 @@ public class Post {
         this.visibleToFriendList = visibleToFriendList;
     }
 
-    public MultipartFile[] getImageList() {
+    public List<ImageDTO> getImageList() {
         return imageList;
     }
 
-    public void setImageList(MultipartFile[] imageList) {
+    public void setImageList(List<ImageDTO> imageList) {
         this.imageList = imageList;
     }
 
+    public Boolean getEdited() {
+        return isEdited;
+    }
+
+    public void setEdited(Boolean edited) {
+        isEdited = edited;
+    }
+
+    public void setCreatedDate(Instant createdDate) {
+        this.createdDate = createdDate;
+    }
+
+    public Boolean getDeleted() {
+        return isDeleted;
+    }
+
+    public void setDeleted(Boolean deleted) {
+        isDeleted = deleted;
+    }
 }

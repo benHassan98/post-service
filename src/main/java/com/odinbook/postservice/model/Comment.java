@@ -2,11 +2,15 @@ package com.odinbook.postservice.model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.odinbook.postservice.DTO.ImageDTO;
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.springframework.web.multipart.MultipartFile;
 
+
 import java.sql.Date;
+import java.time.Instant;
+import java.util.List;
 
 @Entity
 @Table(name = "comments")
@@ -26,13 +30,13 @@ public class Comment {
     private String content;
 
     @Transient
-    private MultipartFile[] imageList;
+    private List<ImageDTO> imageList;
 
     @Column(name = "created_date", nullable = false, updatable = false)
     @CreationTimestamp
-    private Date createdDate;
+    private Instant createdDate;
 
-    public Date getCreatedDate() {
+    public Instant getCreatedDate() {
         return createdDate;
     }
 
@@ -68,11 +72,11 @@ public class Comment {
         this.content = content;
     }
 
-    public MultipartFile[] getImageList() {
+    public List<ImageDTO> getImageList() {
         return imageList;
     }
 
-    public void setImageList(MultipartFile[] imageList) {
+    public void setImageList(List<ImageDTO> imageList) {
         this.imageList = imageList;
     }
 

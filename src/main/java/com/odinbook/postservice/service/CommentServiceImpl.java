@@ -4,11 +4,13 @@ import com.azure.messaging.webpubsub.WebPubSubServiceClientBuilder;
 import com.azure.messaging.webpubsub.models.WebPubSubContentType;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.odinbook.postservice.DTO.ImageDTO;
 import com.odinbook.postservice.model.Comment;
 import com.odinbook.postservice.model.Post;
 import com.odinbook.postservice.record.CommentRecord;
 import com.odinbook.postservice.repository.CommentRepository;
 import jakarta.transaction.Transactional;
+import org.jsoup.UncheckedIOException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -48,14 +50,12 @@ public class CommentServiceImpl implements CommentService{
         comment.setId(commentRepository.saveAndFlush(comment).getId());
 
         try{
-            imageService.createBlobs(
-                    "comment."+comment.getId().toString(),
-                    comment.getImageList());
-            String newContent = imageService.injectImagesToHTML(comment.getContent(), comment.getImageList());
-            comment.setContent(newContent);
+            imageService.createBlobs(comment.getImageList());
+
         }
         catch (RuntimeException exception){
             exception.printStackTrace();
+            System.out.println("Error");
         }
 
         CommentRecord commentRecord = new CommentRecord(
@@ -98,7 +98,7 @@ public class CommentServiceImpl implements CommentService{
 
         commentRepository.deleteById(commentId);
 
-        imageService.deleteImages(comment.getId().toString());
+        imageService.deleteImages(comment.getContent());
 
         stompService.sendRemovedCommentToAccounts(comment);
 

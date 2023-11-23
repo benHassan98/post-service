@@ -6,6 +6,9 @@ import com.azure.core.implementation.util.BinaryDataContent;
 import com.azure.core.util.BinaryData;
 import com.azure.messaging.webpubsub.WebPubSubServiceClientBuilder;
 import com.azure.messaging.webpubsub.models.WebPubSubContentType;
+import com.azure.storage.blob.BlobContainerClient;
+import com.azure.storage.blob.BlobServiceClientBuilder;
+import com.azure.storage.blob.models.ListBlobsOptions;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.odinbook.postservice.model.Comment;
@@ -14,7 +17,9 @@ import com.odinbook.postservice.record.CommentRecord;
 import com.odinbook.postservice.record.LikeNotificationRecord;
 import com.odinbook.postservice.record.PostRecord;
 import com.odinbook.postservice.repository.PostRepository;
+import com.odinbook.postservice.service.ImageService;
 import com.odinbook.postservice.service.ImageServiceImpl;
+import com.odinbook.postservice.service.PostService;
 import com.odinbook.postservice.validation.PostForm;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
@@ -39,9 +44,12 @@ import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
+import java.io.File;
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.http.WebSocket;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -64,35 +72,36 @@ public class PostTest {
     private MockMvc mockMvc;
     @MockBean
     private ImageServiceImpl imageService;
-    @Autowired
+    @MockBean
     @Qualifier("notificationRequest")
     private MessageChannel notificationRequest;
+    @Value("${spring.cloud.azure.storage.connection-string}")
+    private String connectStr;
+
 
     @BeforeEach
     public void beforeEach(){
-        postRepository.deleteAll();
-        testUtils.deleteAccounts();
+//        postRepository.deleteAll();
+//        testUtils.deleteAccounts();
         Mockito
                 .doNothing()
                 .when(imageService)
-                .createBlobs(anyString(),any());
-        Mockito
-                .when(imageService.injectImagesToHTML(anyString(),any()))
-                .thenReturn("test");
+                .createBlobs(any());
+
         Mockito
                 .doNothing()
                 .when(imageService)
                 .deleteImages(anyString());
-//        Mockito
-//                .when(notificationRequest.send(any()))
-//                .thenReturn(true);
+        Mockito
+                .when(notificationRequest.send(any()))
+                .thenReturn(true);
 
     }
-    @AfterEach
-    public void afterEach(){
-        postRepository.deleteAll();
-        testUtils.deleteAccounts();
-    }
+//    @AfterEach
+//    public void afterEach(){
+//        postRepository.deleteAll();
+//        testUtils.deleteAccounts();
+//    }
 
     @Test
     public void createPost() throws Exception{
@@ -294,84 +303,19 @@ public class PostTest {
                 .andExpect(status().isNotFound());
 
 
-
     }
 
     @Test
-    public void tsPost(){
-        Post post = testUtils.createRandomPost();
-        PostRecord postRecord = new PostRecord(
-                post.getId(),
-                post.getAccountId(),
-                Objects.nonNull(post.getSharedFromPost()),
-                post.getVisibleToFollowers(),
-                post.getFriendsVisibilityType(),
-                post.getVisibleToFriendList()
-        );
+    public void ts() throws IOException {
 
-        Message<PostRecord> notificationMessage = MessageBuilder
-                .withPayload(postRecord)
-                .setHeader("notificationType","newPost")
-                .build();
+//        testUtils.createRandomPost();
+//        testUtils.createRandomPost();
+//        testUtils.createRandomPost();
+//        testUtils.createRandomPost();
+//        testUtils.createRandomPost();
 
-        notificationRequest.send(notificationMessage);
 
-    }
-    @Test
-    public void tsComment(){
-        Comment comment = testUtils.createRandomComment();
 
-        CommentRecord commentRecord = new CommentRecord(
-                comment.getId(),
-                comment.getPost().getId(),
-                comment.getAccountId()
-        );
-
-        Message<CommentRecord> notificationMessage = MessageBuilder
-                .withPayload(commentRecord)
-                .setHeader("notificationType","newComment")
-                .build();
-
-        notificationRequest.send(notificationMessage);
-
-    }
-
-    @Test
-    public void tsLike(){
-        Post post = testUtils.createRandomPost();
-
-        Message<LikeNotificationRecord> notificationMessage = MessageBuilder
-                .withPayload(new LikeNotificationRecord(post.getId(), post.getAccountId(), 100L))
-                .setHeader("notificationType","newLike")
-                .build();
-
-        notificationRequest.send(notificationMessage);
-
-    }
-
-    @Test
-    public void ts() throws URISyntaxException {
-        WebSocketClient webSocketClient = new WebSocketClient(new URI("")) {
-            @Override
-            public void onOpen(ServerHandshake serverHandshake) {
-
-            }
-
-            @Override
-            public void onMessage(String s) {
-
-            }
-
-            @Override
-            public void onClose(int i, String s, boolean b) {
-
-            }
-
-            @Override
-            public void onError(Exception e) {
-
-            }
-        };
 
     }
 

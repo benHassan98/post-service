@@ -2,24 +2,31 @@ package com.odinbook.postservice.validation;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.odinbook.postservice.DTO.ImageDTO;
 import com.odinbook.postservice.model.Comment;
 import com.odinbook.postservice.model.Post;
 import jakarta.validation.constraints.NotEmpty;
 import org.springframework.web.multipart.MultipartFile;
-
+import com.fasterxml.jackson.datatype.jsr310.*;
 public class CommentForm {
     private Long accountId;
     @PostNotNull
-    private Post post;
+    private String postJson;
     @NotEmpty
     private String content;
-    private MultipartFile[] imageList = new MultipartFile[0];
-    public Comment getComment(){
+    public Comment getComment() throws JsonProcessingException {
+        System.out.println(this.accountId);
+        System.out.println(this.postJson);
+        System.out.println(this.content);
+
+
+        Post post = new ObjectMapper().registerModule(new JavaTimeModule()).readValue(this.postJson, Post.class);
+
+
         Comment comment = new Comment();
         comment.setAccountId(this.accountId);
-        comment.setPost(this.post);
+        comment.setPost(post);
         comment.setContent(this.content);
-        comment.setImageList(this.imageList);
 
         return comment;
 
@@ -33,13 +40,13 @@ public class CommentForm {
         this.accountId = accountId;
     }
 
-    public Post getPost() {
-        return post;
+    public String getPostJson() {
+        return postJson;
     }
 
-    public void setPost(String postJson) throws JsonProcessingException {
+    public void setPostJson(String postJson) throws JsonProcessingException {
 
-        this.post = new ObjectMapper().readValue(postJson,Post.class);
+        this.postJson = postJson;
     }
 
     public String getContent() {
@@ -50,11 +57,4 @@ public class CommentForm {
         this.content = content;
     }
 
-    public MultipartFile[] getImageList() {
-        return imageList;
-    }
-
-    public void setImageList(MultipartFile[] imageList) {
-        this.imageList = imageList;
-    }
 }

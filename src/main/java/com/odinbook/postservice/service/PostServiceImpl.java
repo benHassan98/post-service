@@ -2,10 +2,14 @@ package com.odinbook.postservice.service;
 
 
 
+import com.odinbook.postservice.DTO.ImageDTO;
 import com.odinbook.postservice.model.Post;
 import com.odinbook.postservice.record.LikeNotificationRecord;
 import com.odinbook.postservice.record.PostRecord;
 import com.odinbook.postservice.repository.PostRepository;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,9 +24,12 @@ import java.util.*;
 @Service
 public class PostServiceImpl implements PostService {
 
+    @PersistenceContext
+    private EntityManager entityManager;
     private final PostRepository postRepository;
     private final MessageChannel notificationRequest;
     private final ImageService imageService;
+
 
     @Autowired
     public PostServiceImpl(PostRepository postRepository,
@@ -39,11 +46,7 @@ public class PostServiceImpl implements PostService {
         post.setId(postRepository.saveAndFlush(post).getId());
 
         try{
-            imageService.createBlobs(
-                    "post."+post.getId().toString(),
-                    post.getImageList());
-            String newContent = imageService.injectImagesToHTML(post.getContent(), post.getImageList());
-            post.setContent(newContent);
+            imageService.createBlobs(post.getImageList());
         }
         catch (RuntimeException exception){
             exception.printStackTrace();
@@ -73,7 +76,7 @@ public class PostServiceImpl implements PostService {
 
     @Override
     public Optional<Post> findPostById(Long postId) {
-        return postRepository.findById(postId);
+        return postRepository.findById(postId).filter(post->!post.getDeleted());
     }
 
     @Override
@@ -85,17 +88,13 @@ public class PostServiceImpl implements PostService {
     public Optional<Post> updatePost(Post newPost){
 
      return postRepository.findById(newPost.getId())
+             .filter(post->!post.getDeleted())
              .map((oldPost)->{
 
                  try{
-                     imageService.createBlobs(
-                             "post."+newPost.getId().toString(),
-                             newPost.getImageList());
-                     String newContent = imageService.injectImagesToHTML(
-                             newPost.getContent(),
-                             newPost.getImageList());
+                     imageService.createBlobs(newPost.getImageList());
 
-                     newPost.setContent(newContent);
+                     imageService.deleteUnusedImages(oldPost.getContent(),newPost.getContent());
                  }
                  catch (RuntimeException exception){
                      exception.printStackTrace();
@@ -106,24 +105,33 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
+    @Transactional
     public void deletePostById(Long postId) throws NoSuchElementException{
 
         Post post = findPostById(postId)
+                .filter(p->!p.getDeleted())
                 .orElseThrow();
 
-        imageService.deleteImages(post.getId().toString());
+        imageService.deleteImages(post.getContent());
 
-        postRepository.deleteById(postId);
-
+        entityManager
+                .createNativeQuery("UPDATE posts SET is_deleted = 1, content= 'This post is deleted' WHERE id = :postId")
+                .setParameter("postId",postId)
+                .executeUpdate();
     }
 
     @Override
+    @Transactional
     public void addLike(Long accountId, Long postId) throws NoSuchElementException {
         Post post = postRepository.findById(postId)
+                .filter(p->!p.getDeleted())
                 .orElseThrow();
 
-        postRepository.addLike(accountId,postId);
-
+        entityManager
+                .createNativeQuery("INSERT INTO likes VALUES (:accountId,:postId)")
+                .setParameter("accountId",accountId)
+                .setParameter("postId",postId)
+                .executeUpdate();
 
 
         Message<LikeNotificationRecord> notificationMessage = MessageBuilder
@@ -136,9 +144,15 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
+    @Transactional
     public void removeLike(Long accountId, Long postId){
 
-        postRepository.removeLike(accountId,postId);
+
+        entityManager
+                .createNativeQuery("DELETE FROM likes WHERE account_id=:accountId AND post_id=:postId")
+                .setParameter("accountId",accountId)
+                .setParameter("postId",postId)
+                .executeUpdate();
 
     }
 }

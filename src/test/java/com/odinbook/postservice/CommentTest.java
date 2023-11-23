@@ -24,6 +24,8 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -54,13 +56,12 @@ public class CommentTest {
         commentRepository.deleteAll();
         postRepository.deleteAll();
         testUtils.deleteAccounts();
+
         Mockito
                 .doNothing()
                 .when(imageService)
-                .createBlobs(anyString(),any());
-        Mockito
-                .when(imageService.injectImagesToHTML(anyString(),any()))
-                .thenReturn("test");
+                .createBlobs(any());
+
         Mockito
                 .doNothing()
                 .when(imageService)

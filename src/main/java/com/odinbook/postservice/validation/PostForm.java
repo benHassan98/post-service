@@ -2,33 +2,43 @@ package com.odinbook.postservice.validation;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.odinbook.postservice.DTO.ImageDTO;
 import com.odinbook.postservice.model.Post;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
 @CreatedOrSharedPost
 public class PostForm {
 
+    private Long id;
     private Long accountId;
     private String content;
-    private Post sharedFromPost;
-    private Boolean isVisibleToFollowers;
+    private String sharedFromPostJson;
+    private Boolean visibleToFollowers;
     private Boolean friendsVisibilityType;
+    private Boolean edited;
     private List<Long> visibleToFriendList = new ArrayList<>();
-    private MultipartFile[] imageList = new MultipartFile[0];
 
 
-    public Post getPost(){
+
+    public Post getPost() throws JsonProcessingException {
+
+        Post sharedFromPost = new ObjectMapper().registerModule(new JavaTimeModule()).readValue(this.sharedFromPostJson, Post.class);
+
         Post post = new Post();
+        post.setId(this.id);
         post.setAccountId(this.accountId);
         post.setContent(this.content);
-        post.setSharedFromPost(this.sharedFromPost);
+        post.setSharedFromPost(sharedFromPost);
         post.setFriendsVisibilityType(this.friendsVisibilityType);
-        post.setVisibleToFollowers(this.isVisibleToFollowers);
+        post.setVisibleToFollowers(this.visibleToFollowers);
+        post.setEdited(this.edited);
         post.setVisibleToFriendList(this.visibleToFriendList);
-        post.setImageList(this.imageList);
+
         return post;
     }
 
@@ -47,22 +57,13 @@ public class PostForm {
     public String getContent(){
         return this.content;
     }
-    public void setSharedFromPost(String sharedFromPostJson) throws JsonProcessingException {
-        this.sharedFromPost = new ObjectMapper().readValue(sharedFromPostJson,Post.class);
+    public void setSharedFromPostJson(String sharedFromPostJson){
+        this.sharedFromPostJson = sharedFromPostJson;
     }
 
-    public Post getSharedFromPost(){
-        return this.sharedFromPost;
+    public String getSharedFromPostJson(){
+        return this.sharedFromPostJson;
     }
-
-    public MultipartFile[] getImageList() {
-        return imageList;
-    }
-
-    public void setImageList(MultipartFile[] imageList) {
-        this.imageList = imageList;
-    }
-
 
     public Boolean getFriendsVisibilityType() {
         return friendsVisibilityType;
@@ -73,11 +74,11 @@ public class PostForm {
     }
 
     public Boolean getVisibleToFollowers() {
-        return isVisibleToFollowers;
+        return visibleToFollowers;
     }
 
     public void setVisibleToFollowers(Boolean visibleToFollowers) {
-        isVisibleToFollowers = visibleToFollowers;
+       this.visibleToFollowers = visibleToFollowers;
     }
 
     public List<Long> getVisibleToFriendList() {
@@ -86,5 +87,21 @@ public class PostForm {
 
     public void setVisibleToFriendList(List<Long> visibleToFriendList) {
         this.visibleToFriendList = visibleToFriendList;
+    }
+
+    public Boolean getEdited() {
+        return edited;
+    }
+
+    public void setEdited(Boolean edited) {
+        this.edited = edited;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 }

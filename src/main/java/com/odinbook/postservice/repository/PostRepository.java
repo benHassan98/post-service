@@ -34,15 +34,5 @@ public interface PostRepository extends JpaRepository<Post,Long> {
             )
             )""",nativeQuery = true)
     public List<Post> findPostsByAccountId(@Param("accountId") Long accountId);
-    @Query(value = "INSERT INTO likes(account_id,post_id) VALUES (:accountId,:postId)",nativeQuery = true)
-    public void addLike(@Param("accountId") Long accountId, @Param("postId") Long postId);
-
-    @Query(value = "DELETE FROM likes WHERE account_id=:accountId AND post_id=:postId",nativeQuery = true)
-    public void removeLike(@Param("accountId") Long accountId, @Param("postId") Long postId);
-
-    @Query(value = "INSERT INTO followers_visibility VALUES(:postId,:isVisible)",nativeQuery = true)
-    public void addFollowersVisibility(@Param("postId") Long postId,@Param("isVisible") Boolean isVisible);
-    @Query(value = "INSERT INTO posts_visibility_type VALUES (:postId,:visibilityType)",nativeQuery = true)
-    public void addPostVisibilityType(@Param("postId") Long postId,@Param("visibilityType") Boolean visibilityType);
 
 }
