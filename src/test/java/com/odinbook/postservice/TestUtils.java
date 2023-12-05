@@ -41,7 +41,7 @@ public class TestUtils {
         String email = getSaltString()+"@gmail.com";
         String roles = "ROLE_USER";
         String password = "password";
-        String picture = "picture";
+        String picture = "dumb.jpg";
 
         entityManager
                 .createNativeQuery("INSERT INTO accounts (fullname, username, email, roles, password, picture)" +
@@ -51,7 +51,7 @@ public class TestUtils {
                 .setParameter("email",email)
                 .setParameter("roles",roles)
                 .setParameter("password",password)
-                .setParameter("dumb.jpg",picture)
+                .setParameter("picture",picture)
                 .executeUpdate();
 
 

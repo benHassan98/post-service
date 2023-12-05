@@ -80,6 +80,10 @@ public class PostController {
     public List<Post> findPostsByAccountId(@PathVariable Long accountId){
         return postService.findPostsByAccountId(accountId);
     }
+    @GetMapping("/profile/{accountId}")
+    public List<Post> findPublicPostsByAccountId(@PathVariable Long accountId){
+        return postService.findPublicPostsByAccountId(accountId);
+    }
 
     @PutMapping("/update")
     public ResponseEntity<?> updatePost(@Valid @ModelAttribute PostForm postForm,

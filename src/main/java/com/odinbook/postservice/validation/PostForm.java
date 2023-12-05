@@ -10,6 +10,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @CreatedOrSharedPost
 public class PostForm {
@@ -20,14 +21,18 @@ public class PostForm {
     private String sharedFromPostJson;
     private Boolean visibleToFollowers;
     private Boolean friendsVisibilityType;
-    private Boolean edited;
+    private Boolean edited = false;
+    private Boolean deleted = false;
     private List<Long> visibleToFriendList = new ArrayList<>();
 
 
 
     public Post getPost() throws JsonProcessingException {
 
-        Post sharedFromPost = new ObjectMapper().registerModule(new JavaTimeModule()).readValue(this.sharedFromPostJson, Post.class);
+        Post sharedFromPost = Objects.nonNull(sharedFromPostJson)?
+                new ObjectMapper()
+                        .registerModule(new JavaTimeModule())
+                        .readValue(this.sharedFromPostJson, Post.class) : null;
 
         Post post = new Post();
         post.setId(this.id);
@@ -37,6 +42,7 @@ public class PostForm {
         post.setFriendsVisibilityType(this.friendsVisibilityType);
         post.setVisibleToFollowers(this.visibleToFollowers);
         post.setEdited(this.edited);
+        post.setDeleted(this.deleted);
         post.setVisibleToFriendList(this.visibleToFriendList);
 
         return post;

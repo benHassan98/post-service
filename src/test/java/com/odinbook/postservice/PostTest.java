@@ -312,7 +312,7 @@ public class PostTest {
 //        testUtils.createRandomPost();
 //        testUtils.createRandomPost();
 //        testUtils.createRandomPost();
-//        testUtils.createRandomPost();
+        testUtils.createRandomPost();
 
 
 

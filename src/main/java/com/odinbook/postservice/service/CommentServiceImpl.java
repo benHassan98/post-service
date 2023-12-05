@@ -60,6 +60,7 @@ public class CommentServiceImpl implements CommentService{
 
         CommentRecord commentRecord = new CommentRecord(
                 comment.getId(),
+                comment.getPost().getAccountId(),
                 comment.getPost().getId(),
                 comment.getAccountId()
         );

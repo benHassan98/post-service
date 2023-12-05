@@ -47,7 +47,7 @@ public class Post {
     private Boolean isVisibleToFollowers;
 
     @Column(name = "is_deleted")
-    private Boolean isDeleted = false;
+    private Boolean isDeleted;
 
     @Column(name = "friends_visibility_type")
     private Boolean friendsVisibilityType;

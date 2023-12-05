@@ -81,7 +81,21 @@ public class PostServiceImpl implements PostService {
 
     @Override
     public List<Post> findPostsByAccountId(Long accountId) {
-        return postRepository.findPostsByAccountId(accountId);
+
+        return postRepository
+                .findPostsByAccountId(accountId)
+                .stream()
+                .filter(post->!post.getDeleted())
+                .toList();
+    }
+
+    @Override
+    public List<Post> findPublicPostsByAccountId(Long accountId) {
+        return postRepository
+                .findPostsByAccountId(accountId)
+                .stream()
+                .filter(post->post.getVisibleToFollowers()&&!post.getFriendsVisibilityType() && !post.getDeleted())
+                .toList();
     }
 
     @Override
