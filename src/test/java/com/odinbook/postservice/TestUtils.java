@@ -100,6 +100,8 @@ public class TestUtils {
         post.setContent("iam "+getSaltString()+" <img src='dumb.jpg' alt='dumb' class='w-32 h-32'/>  ");
         post.setVisibleToFollowers(true);
         post.setFriendsVisibilityType(false);
+        post.setEdited(false);
+        post.setDeleted(false);
 
         return postRepository.saveAndFlush(post);
     }
@@ -122,6 +124,10 @@ public class TestUtils {
         post.setContent(getSaltString());
         post.setVisibleToFollowers(true);
         post.setFriendsVisibilityType(false);
+        post.setEdited(false);
+        post.setDeleted(false);
+        post.setContent("Hello");
+
 
         return postRepository.saveAndFlush(post);
     }
@@ -134,6 +140,8 @@ public class TestUtils {
         post.setContent(getSaltString());
         post.setVisibleToFollowers(false);
         post.setFriendsVisibilityType(false);
+        post.setEdited(false);
+        post.setDeleted(false);
 
         return postRepository.saveAndFlush(post);
     }

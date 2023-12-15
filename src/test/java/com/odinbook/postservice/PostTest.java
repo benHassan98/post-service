@@ -11,6 +11,7 @@ import com.azure.storage.blob.BlobServiceClientBuilder;
 import com.azure.storage.blob.models.ListBlobsOptions;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.odinbook.postservice.model.Comment;
 import com.odinbook.postservice.model.Post;
 import com.odinbook.postservice.record.CommentRecord;
@@ -81,13 +82,8 @@ public class PostTest {
 
     @BeforeEach
     public void beforeEach(){
-//        postRepository.deleteAll();
-//        testUtils.deleteAccounts();
-        Mockito
-                .doNothing()
-                .when(imageService)
-                .createBlobs(any());
-
+        postRepository.deleteAll();
+        testUtils.deleteAccounts();
         Mockito
                 .doNothing()
                 .when(imageService)
@@ -97,11 +93,11 @@ public class PostTest {
                 .thenReturn(true);
 
     }
-//    @AfterEach
-//    public void afterEach(){
-//        postRepository.deleteAll();
-//        testUtils.deleteAccounts();
-//    }
+    @AfterEach
+    public void afterEach(){
+        postRepository.deleteAll();
+        testUtils.deleteAccounts();
+    }
 
     @Test
     public void createPost() throws Exception{
@@ -124,7 +120,7 @@ public class PostTest {
         Post randomPost = testUtils.createRandomPost();
         Long accountId = testUtils.createRandomAccount();
 
-        String randomPostJson = new ObjectMapper().writeValueAsString(randomPost);
+        String randomPostJson = new ObjectMapper().registerModule(new JavaTimeModule()).writeValueAsString(randomPost);
         mockMvc.perform(
                 post("/create")
                         .queryParam("accountId",accountId.toString())
@@ -160,7 +156,7 @@ public class PostTest {
         ).andExpect(status().isOk()).andReturn();
 
 
-        List<Post> postList = new ObjectMapper().readValue(mvcResult.getResponse().getContentAsString(), new TypeReference<>() {
+        List<Post> postList = new ObjectMapper().registerModule(new JavaTimeModule()).readValue(mvcResult.getResponse().getContentAsString(), new TypeReference<>() {
 
         });
 
@@ -185,7 +181,7 @@ public class PostTest {
                         .accept(MediaType.APPLICATION_JSON)
         ).andExpect(status().isOk()).andReturn();
 
-        List<Post> postList = new ObjectMapper().readValue(mvcResult.getResponse().getContentAsString(), new TypeReference<>() {
+        List<Post> postList = new ObjectMapper().registerModule(new JavaTimeModule()).readValue(mvcResult.getResponse().getContentAsString(), new TypeReference<>() {
         });
         assertEquals(3, postList.size());
     }
@@ -203,7 +199,7 @@ public class PostTest {
                 .andReturn();
 
 
-        Post resPost = new ObjectMapper().readValue(mvcResult.getResponse().getContentAsString(), Post.class);
+        Post resPost = new ObjectMapper().registerModule(new JavaTimeModule()).readValue(mvcResult.getResponse().getContentAsString(), Post.class);
 
         assertEquals(post.getId(), resPost.getId());
     }
@@ -229,7 +225,7 @@ public class PostTest {
                 .andReturn();
 
 
-        List<Post> postList = new ObjectMapper().readValue(mvcResult.getResponse().getContentAsString(), new TypeReference<>() {
+        List<Post> postList = new ObjectMapper().registerModule(new JavaTimeModule()).readValue(mvcResult.getResponse().getContentAsString(), new TypeReference<>() {
         });
 
         assertEquals(2,postList.size());
@@ -274,7 +270,7 @@ public class PostTest {
                 .andReturn();
 
 
-        List<Post> postList = new ObjectMapper().readValue(mvcResult.getResponse().getContentAsString(), new TypeReference<>() {
+        List<Post> postList = new ObjectMapper().registerModule(new JavaTimeModule()).readValue(mvcResult.getResponse().getContentAsString(), new TypeReference<>() {
         });
 
 
@@ -305,19 +301,19 @@ public class PostTest {
 
     }
 
-    @Test
-    public void ts() throws IOException {
-
+//    @Test
+//    public void ts() throws IOException {
+//
 //        testUtils.createRandomPost();
 //        testUtils.createRandomPost();
 //        testUtils.createRandomPost();
 //        testUtils.createRandomPost();
-        testUtils.createRandomPost();
-
-
-
-
-    }
+//        testUtils.createRandomPost();
+//
+//
+//
+//
+//    }
 
 
 }

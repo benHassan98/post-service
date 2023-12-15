@@ -2,7 +2,6 @@ package com.odinbook.postservice.model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.odinbook.postservice.DTO.ImageDTO;
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.springframework.web.multipart.MultipartFile;
@@ -28,10 +27,6 @@ public class Comment {
     private Post post;
     @Column(name = "content")
     private String content;
-
-    @Transient
-    private List<ImageDTO> imageList;
-
     @Column(name = "created_date", nullable = false, updatable = false)
     @CreationTimestamp
     private Instant createdDate;
@@ -72,13 +67,6 @@ public class Comment {
         this.content = content;
     }
 
-    public List<ImageDTO> getImageList() {
-        return imageList;
-    }
-
-    public void setImageList(List<ImageDTO> imageList) {
-        this.imageList = imageList;
-    }
 
 
 }

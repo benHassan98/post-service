@@ -4,7 +4,6 @@ import com.azure.messaging.webpubsub.WebPubSubServiceClientBuilder;
 import com.azure.messaging.webpubsub.models.WebPubSubContentType;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.odinbook.postservice.DTO.ImageDTO;
 import com.odinbook.postservice.model.Comment;
 import com.odinbook.postservice.model.Post;
 import com.odinbook.postservice.record.CommentRecord;
@@ -48,15 +47,6 @@ public class CommentServiceImpl implements CommentService{
     public Comment createComment(Comment comment) {
 
         comment.setId(commentRepository.saveAndFlush(comment).getId());
-
-        try{
-            imageService.createBlobs(comment.getImageList());
-
-        }
-        catch (RuntimeException exception){
-            exception.printStackTrace();
-            System.out.println("Error");
-        }
 
         CommentRecord commentRecord = new CommentRecord(
                 comment.getId(),

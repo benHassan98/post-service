@@ -3,7 +3,7 @@ package com.odinbook.postservice.validation;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.odinbook.postservice.DTO.ImageDTO;
+import com.odinbook.postservice.model.Comment;
 import com.odinbook.postservice.model.Post;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -24,10 +24,14 @@ public class PostForm {
     private Boolean edited = false;
     private Boolean deleted = false;
     private List<Long> visibleToFriendList = new ArrayList<>();
+    private List<Long> likesList = new ArrayList<>();
+    private List<Comment> commentsList = new ArrayList<>();
 
 
 
     public Post getPost() throws JsonProcessingException {
+
+
 
         Post sharedFromPost = Objects.nonNull(sharedFromPostJson)?
                 new ObjectMapper()
@@ -44,6 +48,8 @@ public class PostForm {
         post.setEdited(this.edited);
         post.setDeleted(this.deleted);
         post.setVisibleToFriendList(this.visibleToFriendList);
+        post.setLikesList(this.likesList);
+        post.setCommentsList(this.commentsList);
 
         return post;
     }
@@ -109,5 +115,29 @@ public class PostForm {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public Boolean getDeleted() {
+        return deleted;
+    }
+
+    public void setDeleted(Boolean deleted) {
+        this.deleted = deleted;
+    }
+
+    public List<Long> getLikesList() {
+        return likesList;
+    }
+
+    public void setLikesList(List<Long> likesList) {
+        this.likesList = likesList;
+    }
+
+    public List<Comment> getCommentsList() {
+        return commentsList;
+    }
+
+    public void setCommentsList(List<Comment> commentsList) {
+        this.commentsList = commentsList;
     }
 }

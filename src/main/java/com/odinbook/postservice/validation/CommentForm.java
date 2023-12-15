@@ -2,7 +2,6 @@ package com.odinbook.postservice.validation;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.odinbook.postservice.DTO.ImageDTO;
 import com.odinbook.postservice.model.Comment;
 import com.odinbook.postservice.model.Post;
 import jakarta.validation.constraints.NotEmpty;
@@ -15,10 +14,6 @@ public class CommentForm {
     @NotEmpty
     private String content;
     public Comment getComment() throws JsonProcessingException {
-        System.out.println(this.accountId);
-        System.out.println(this.postJson);
-        System.out.println(this.content);
-
 
         Post post = new ObjectMapper().registerModule(new JavaTimeModule()).readValue(this.postJson, Post.class);
 

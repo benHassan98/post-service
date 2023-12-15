@@ -2,7 +2,6 @@ package com.odinbook.postservice.service;
 
 import com.azure.storage.blob.BlobContainerClient;
 import com.azure.storage.blob.BlobServiceClientBuilder;
-import com.odinbook.postservice.DTO.ImageDTO;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
@@ -21,52 +20,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class ImageServiceImpl implements ImageService{
     @Value("${spring.cloud.azure.storage.connection-string}")
     private String connectStr;
-    @Override
-    public void createBlobs(List<ImageDTO> imageList) throws RuntimeException{
-        if(Objects.isNull(imageList))
-            return;
-
-        imageList.forEach((image)->{
-            try {
-
-                new BlobServiceClientBuilder()
-                        .connectionString(connectStr)
-                        .buildClient()
-                        .getBlobContainerClient("images")
-                        .getBlobClient(image.getId())
-                        .upload(image.getFile().getInputStream());
-
-            } catch (IOException exception) {
-                throw new RuntimeException(exception);
-            }
-
-        });
-    }
-
-    @Override
-    public String injectImagesToHTML(String html, List<String> imageNameList) {
-        AtomicInteger index = new AtomicInteger();
-
-        Document document =  Jsoup.parse(html);
-        imageNameList.forEach(imageName->{
-            document
-                    .selectFirst("img[src=");
-
-        });
-        document
-                .select("img[src=")
-//                .first()
-                .replaceAll(element ->
-                        element.attributes().hasKey("is-new")?
-                                element.attr("src",imageNameList.get(index.getAndIncrement()))
-                                        .removeAttr("is-new"):
-                                element.removeAttr("is-new")
-                );
-
-        return document.body().html();
-
-    }
-
     @Override
     public void deleteImages(String content) {
 

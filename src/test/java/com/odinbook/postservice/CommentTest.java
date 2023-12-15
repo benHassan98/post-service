@@ -2,6 +2,7 @@ package com.odinbook.postservice;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.odinbook.postservice.model.Comment;
 import com.odinbook.postservice.model.Post;
 import com.odinbook.postservice.repository.CommentRepository;
@@ -96,12 +97,12 @@ public class CommentTest {
         Post post = testUtils.createPost(accountId);
 
 
-        String postJson = new ObjectMapper().writeValueAsString(post);
+        String postJson = new ObjectMapper().registerModule(new JavaTimeModule()).writeValueAsString(post);
 
         mockMvc.perform(
                 post("/comment/create")
                         .queryParam("accountId",accountId.toString())
-                        .queryParam("post",postJson)
+                        .queryParam("postJson",postJson)
                         .queryParam("content","Hello")
                         .characterEncoding("utf-8")
                         .accept(MediaType.APPLICATION_JSON)
@@ -122,7 +123,7 @@ public class CommentTest {
                         .accept(MediaType.APPLICATION_JSON)
         ).andExpect(status().isOk()).andReturn();
 
-        Comment resComment = new ObjectMapper().readValue(mvcResult.getResponse().getContentAsString(), Comment.class);
+        Comment resComment = new ObjectMapper().registerModule(new JavaTimeModule()).readValue(mvcResult.getResponse().getContentAsString(), Comment.class);
 
 
         assertEquals(comment.getId(),resComment.getId());

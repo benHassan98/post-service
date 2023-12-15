@@ -2,7 +2,6 @@ package com.odinbook.postservice.service;
 
 
 
-import com.odinbook.postservice.DTO.ImageDTO;
 import com.odinbook.postservice.model.Post;
 import com.odinbook.postservice.record.LikeNotificationRecord;
 import com.odinbook.postservice.record.PostRecord;
@@ -45,12 +44,6 @@ public class PostServiceImpl implements PostService {
 
         post.setId(postRepository.saveAndFlush(post).getId());
 
-        try{
-            imageService.createBlobs(post.getImageList());
-        }
-        catch (RuntimeException exception){
-            exception.printStackTrace();
-        }
         PostRecord postRecord = new PostRecord(
                 post.getId(),
                 post.getAccountId(),
@@ -66,6 +59,7 @@ public class PostServiceImpl implements PostService {
                 .build();
 
         notificationRequest.send(notificationMessage);
+
         return postRepository.saveAndFlush(post);
     }
 
@@ -103,19 +97,7 @@ public class PostServiceImpl implements PostService {
 
      return postRepository.findById(newPost.getId())
              .filter(post->!post.getDeleted())
-             .map((oldPost)->{
-
-                 try{
-                     imageService.createBlobs(newPost.getImageList());
-
-                     imageService.deleteUnusedImages(oldPost.getContent(),newPost.getContent());
-                 }
-                 catch (RuntimeException exception){
-                     exception.printStackTrace();
-                 }
-
-                 return postRepository.saveAndFlush(newPost);
-             });
+             .map((oldPost)->postRepository.saveAndFlush(newPost));
     }
 
     @Override

@@ -3,7 +3,6 @@ package com.odinbook.postservice.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
-import com.odinbook.postservice.DTO.ImageDTO;
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.springframework.web.multipart.MultipartFile;
@@ -25,9 +24,6 @@ public class Post {
     @Column(name = "content")
     private String content;
 
-    @Transient
-    private List<ImageDTO> imageList;
-
     @ManyToOne
     @JoinColumn(name = "shared_from_post_id")
     private Post sharedFromPost;
@@ -35,11 +31,11 @@ public class Post {
     @ElementCollection
     @CollectionTable(name = "likes" ,joinColumns = @JoinColumn(name = "post_id"))
     @Column(name = "account_id")
-    private final List<Long> likesList = new ArrayList<>();
+    private List<Long> likesList = new ArrayList<>();
 
     @JsonManagedReference
     @OneToMany(mappedBy = "post")
-    private final List<Comment> commentsList = new ArrayList<>();
+    private List<Comment> commentsList = new ArrayList<>();
 
     @Column(name = "is_edited")
     private Boolean isEdited = false;
@@ -47,7 +43,7 @@ public class Post {
     private Boolean isVisibleToFollowers;
 
     @Column(name = "is_deleted")
-    private Boolean isDeleted;
+    private Boolean isDeleted = false;
 
     @Column(name = "friends_visibility_type")
     private Boolean friendsVisibilityType;
@@ -105,6 +101,14 @@ public class Post {
         return commentsList;
     }
 
+    public void setLikesList(List<Long> likesList) {
+        this.likesList = likesList;
+    }
+
+    public void setCommentsList(List<Comment> commentsList) {
+        this.commentsList = commentsList;
+    }
+
     public Boolean getVisibleToFollowers() {
         return isVisibleToFollowers;
     }
@@ -129,14 +133,6 @@ public class Post {
         this.visibleToFriendList = visibleToFriendList;
     }
 
-    public List<ImageDTO> getImageList() {
-        return imageList;
-    }
-
-    public void setImageList(List<ImageDTO> imageList) {
-        this.imageList = imageList;
-    }
-
     public Boolean getEdited() {
         return isEdited;
     }
@@ -156,4 +152,5 @@ public class Post {
     public void setDeleted(Boolean deleted) {
         isDeleted = deleted;
     }
+
 }

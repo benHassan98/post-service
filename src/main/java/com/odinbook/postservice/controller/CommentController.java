@@ -1,7 +1,6 @@
 package com.odinbook.postservice.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.odinbook.postservice.DTO.ImageDTO;
 import com.odinbook.postservice.model.Comment;
 import com.odinbook.postservice.service.CommentService;
 import com.odinbook.postservice.validation.CommentForm;
@@ -31,26 +30,12 @@ public class CommentController {
 
     @PostMapping("/create")
     public ResponseEntity<?> createComment(@Valid @ModelAttribute CommentForm commentForm,
-                                           BindingResult bindingResult,
-                                           @RequestParam(value = "idList",required = false) String[] idList,
-                                           @RequestParam(value = "fileList",required = false) MultipartFile[] fileList) throws JsonProcessingException {
+                                           BindingResult bindingResult) throws JsonProcessingException {
         if(bindingResult.hasErrors()){
             return ResponseEntity.badRequest().body(bindingResult.getAllErrors());
         }
-        Comment comment = commentForm.getComment();
 
-        if(Objects.nonNull(idList)){
-            List<ImageDTO> imageDTOList = new ArrayList<>();
-            for(int i = 0; i< idList.length;i++){
-                ImageDTO imageDTO = new ImageDTO();
-                imageDTO.setId(idList[i]);
-                imageDTO.setFile(fileList[i]);
-                imageDTOList.add(imageDTO);
-            }
-            comment.setImageList(imageDTOList);
-        }
-
-        return  ResponseEntity.ok(commentService.createComment(comment));
+        return  ResponseEntity.ok(commentService.createComment(commentForm.getComment()));
 
     }
 
@@ -74,7 +59,8 @@ public class CommentController {
 
     }
     @ExceptionHandler(value = JsonProcessingException.class)
-    public ResponseEntity<?> jsonProcessingExceptionHandler(){
+    public ResponseEntity<?> jsonProcessingExceptionHandler(Exception exception){
+        exception.printStackTrace();
         return ResponseEntity.status(HttpResponseStatus.INTERNAL_SERVER_ERROR.code()).build();
     }
 
