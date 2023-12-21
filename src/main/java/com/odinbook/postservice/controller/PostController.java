@@ -51,9 +51,10 @@ public class PostController {
     public List<Post> findPostsByAccountId(@PathVariable Long accountId){
         return postService.findPostsByAccountId(accountId);
     }
-    @GetMapping("/profile/{accountId}")
-    public List<Post> findPublicPostsByAccountId(@PathVariable Long accountId){
-        return postService.findPublicPostsByAccountId(accountId);
+    @GetMapping("/profile/{accountId}/{isAccountProfile}")
+    public List<Post> findPublicPostsByAccountId(@PathVariable Long accountId, @PathVariable Integer isAccountProfile){
+
+        return postService.findPublicPostsByAccountId(accountId, Boolean.valueOf(String.valueOf(isAccountProfile)));
     }
 
     @PutMapping("/update")
