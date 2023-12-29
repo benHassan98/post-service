@@ -19,7 +19,7 @@ public interface PostRepository extends JpaRepository<Post,Long> {
             OR
 
             (
-              is_followers_visible = 1 AND EXISTS ( select * from followers where follower_id = :accountId AND followee_id = account_id )
+              is_followers_visible = true AND EXISTS ( select * from followers where follower_id = :accountId AND followee_id = account_id )
             )
 
             OR
@@ -28,9 +28,9 @@ public interface PostRepository extends JpaRepository<Post,Long> {
             EXISTS (SELECT * FROM friends WHERE (adding_id = :accountId AND added_id = account_id) OR (added_id = :accountId AND adding_id = account_id)   )
             AND
             (
-            (friends_visibility_type = 1 AND EXISTS (select * from posts_friends_visibility WHERE friend_id = :accountId AND id = post_id) )
+            (friends_visibility_type = true AND EXISTS (select * from posts_friends_visibility WHERE friend_id = :accountId AND id = post_id) )
             OR
-            (friends_visibility_type = 0 AND NOT EXISTS (select * from posts_friends_visibility WHERE friend_id = :accountId AND id = post_id) )
+            (friends_visibility_type = false AND NOT EXISTS (select * from posts_friends_visibility WHERE friend_id = :accountId AND id = post_id) )
             )
             )""",nativeQuery = true)
     public List<Post> findPostsByAccountId(@Param("accountId") Long accountId);

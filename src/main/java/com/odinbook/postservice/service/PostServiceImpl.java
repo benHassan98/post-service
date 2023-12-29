@@ -27,16 +27,13 @@ public class PostServiceImpl implements PostService {
     private EntityManager entityManager;
     private final PostRepository postRepository;
     private final MessageChannel notificationRequest;
-    private final ImageService imageService;
 
 
     @Autowired
     public PostServiceImpl(PostRepository postRepository,
-                           @Qualifier("notificationRequest") MessageChannel notificationRequest,
-                           ImageService imageService) {
+                           @Qualifier("notificationRequest") MessageChannel notificationRequest) {
         this.postRepository = postRepository;
         this.notificationRequest = notificationRequest;
-        this.imageService = imageService;
     }
 
     @Override
@@ -113,10 +110,8 @@ public class PostServiceImpl implements PostService {
                 .filter(p->!p.getDeleted())
                 .orElseThrow();
 
-        imageService.deleteImages(post.getContent());
-
         entityManager
-                .createNativeQuery("UPDATE posts SET is_deleted = 1, content= 'This post is deleted' WHERE id = :postId")
+                .createNativeQuery("UPDATE posts SET is_deleted = true, content= 'This post is deleted' WHERE id = :postId")
                 .setParameter("postId",postId)
                 .executeUpdate();
     }

@@ -7,7 +7,6 @@ import com.odinbook.postservice.model.Comment;
 import com.odinbook.postservice.model.Post;
 import com.odinbook.postservice.repository.CommentRepository;
 import com.odinbook.postservice.repository.PostRepository;
-import com.odinbook.postservice.service.ImageServiceImpl;
 import com.odinbook.postservice.service.STOMPServiceImpl;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -44,8 +43,6 @@ public class CommentTest {
     @Autowired
     private CommentRepository commentRepository;
     @MockBean
-    private ImageServiceImpl imageService;
-    @MockBean
     private STOMPServiceImpl stompService;
     @MockBean
     @Qualifier("notificationRequest")
@@ -58,15 +55,6 @@ public class CommentTest {
         postRepository.deleteAll();
         testUtils.deleteAccounts();
 
-        Mockito
-                .doNothing()
-                .when(imageService)
-                .createBlobs(any());
-
-        Mockito
-                .doNothing()
-                .when(imageService)
-                .deleteImages(anyString());
         Mockito
                 .when(notificationRequest.send(any()))
                 .thenReturn(true);
@@ -97,7 +85,7 @@ public class CommentTest {
         Post post = testUtils.createPost(accountId);
 
 
-        String postJson = new ObjectMapper().registerModule(new JavaTimeModule()).writeValueAsString(post);
+        String postJson = new ObjectMapper().writeValueAsString(post);
 
         mockMvc.perform(
                 post("/comment/create")
@@ -123,7 +111,7 @@ public class CommentTest {
                         .accept(MediaType.APPLICATION_JSON)
         ).andExpect(status().isOk()).andReturn();
 
-        Comment resComment = new ObjectMapper().registerModule(new JavaTimeModule()).readValue(mvcResult.getResponse().getContentAsString(), Comment.class);
+        Comment resComment = new ObjectMapper().readValue(mvcResult.getResponse().getContentAsString(), Comment.class);
 
 
         assertEquals(comment.getId(),resComment.getId());

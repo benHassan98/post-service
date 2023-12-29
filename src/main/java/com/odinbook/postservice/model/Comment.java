@@ -8,6 +8,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 
 import java.sql.Date;
+import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.List;
 
@@ -29,9 +30,9 @@ public class Comment {
     private String content;
     @Column(name = "created_date", nullable = false, updatable = false)
     @CreationTimestamp
-    private Instant createdDate;
+    private Timestamp createdDate;
 
-    public Instant getCreatedDate() {
+    public Timestamp getCreatedDate() {
         return createdDate;
     }
 

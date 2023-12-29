@@ -35,7 +35,6 @@ public class PostForm {
 
         Post sharedFromPost = Objects.nonNull(sharedFromPostJson)?
                 new ObjectMapper()
-                        .registerModule(new JavaTimeModule())
                         .readValue(this.sharedFromPostJson, Post.class) : null;
 
         Post post = new Post();

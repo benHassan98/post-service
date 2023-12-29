@@ -8,6 +8,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.sql.Date;
+import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -55,9 +56,9 @@ public class Post {
 
     @Column(name = "created_date", nullable = false, updatable = false)
     @CreationTimestamp
-    private Instant createdDate;
+    private Timestamp createdDate;
 
-    public Instant getCreatedDate() {
+    public Timestamp getCreatedDate() {
         return createdDate;
     }
 
@@ -141,7 +142,7 @@ public class Post {
         isEdited = edited;
     }
 
-    public void setCreatedDate(Instant createdDate) {
+    public void setCreatedDate(Timestamp createdDate) {
         this.createdDate = createdDate;
     }
 

@@ -4,11 +4,6 @@ import com.azure.core.http.rest.RequestOptions;
 import com.azure.core.http.rest.Response;
 import com.azure.core.implementation.util.BinaryDataContent;
 import com.azure.core.util.BinaryData;
-import com.azure.messaging.webpubsub.WebPubSubServiceClientBuilder;
-import com.azure.messaging.webpubsub.models.WebPubSubContentType;
-import com.azure.storage.blob.BlobContainerClient;
-import com.azure.storage.blob.BlobServiceClientBuilder;
-import com.azure.storage.blob.models.ListBlobsOptions;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -18,8 +13,6 @@ import com.odinbook.postservice.record.CommentRecord;
 import com.odinbook.postservice.record.LikeNotificationRecord;
 import com.odinbook.postservice.record.PostRecord;
 import com.odinbook.postservice.repository.PostRepository;
-import com.odinbook.postservice.service.ImageService;
-import com.odinbook.postservice.service.ImageServiceImpl;
 import com.odinbook.postservice.service.PostService;
 import com.odinbook.postservice.validation.PostForm;
 import org.java_websocket.client.WebSocketClient;
@@ -72,22 +65,16 @@ public class PostTest {
     @Autowired
     private MockMvc mockMvc;
     @MockBean
-    private ImageServiceImpl imageService;
-    @MockBean
     @Qualifier("notificationRequest")
     private MessageChannel notificationRequest;
-    @Value("${spring.cloud.azure.storage.connection-string}")
-    private String connectStr;
+    
 
 
     @BeforeEach
     public void beforeEach(){
         postRepository.deleteAll();
         testUtils.deleteAccounts();
-        Mockito
-                .doNothing()
-                .when(imageService)
-                .deleteImages(anyString());
+
         Mockito
                 .when(notificationRequest.send(any()))
                 .thenReturn(true);
@@ -120,7 +107,7 @@ public class PostTest {
         Post randomPost = testUtils.createRandomPost();
         Long accountId = testUtils.createRandomAccount();
 
-        String randomPostJson = new ObjectMapper().registerModule(new JavaTimeModule()).writeValueAsString(randomPost);
+        String randomPostJson = new ObjectMapper().writeValueAsString(randomPost);
         mockMvc.perform(
                 post("/create")
                         .queryParam("accountId",accountId.toString())
@@ -156,7 +143,7 @@ public class PostTest {
         ).andExpect(status().isOk()).andReturn();
 
 
-        List<Post> postList = new ObjectMapper().registerModule(new JavaTimeModule()).readValue(mvcResult.getResponse().getContentAsString(), new TypeReference<>() {
+        List<Post> postList = new ObjectMapper().readValue(mvcResult.getResponse().getContentAsString(), new TypeReference<>() {
 
         });
 
@@ -181,7 +168,7 @@ public class PostTest {
                         .accept(MediaType.APPLICATION_JSON)
         ).andExpect(status().isOk()).andReturn();
 
-        List<Post> postList = new ObjectMapper().registerModule(new JavaTimeModule()).readValue(mvcResult.getResponse().getContentAsString(), new TypeReference<>() {
+        List<Post> postList = new ObjectMapper().readValue(mvcResult.getResponse().getContentAsString(), new TypeReference<>() {
         });
         assertEquals(3, postList.size());
     }
@@ -199,7 +186,7 @@ public class PostTest {
                 .andReturn();
 
 
-        Post resPost = new ObjectMapper().registerModule(new JavaTimeModule()).readValue(mvcResult.getResponse().getContentAsString(), Post.class);
+        Post resPost = new ObjectMapper().readValue(mvcResult.getResponse().getContentAsString(), Post.class);
 
         assertEquals(post.getId(), resPost.getId());
     }
@@ -225,7 +212,7 @@ public class PostTest {
                 .andReturn();
 
 
-        List<Post> postList = new ObjectMapper().registerModule(new JavaTimeModule()).readValue(mvcResult.getResponse().getContentAsString(), new TypeReference<>() {
+        List<Post> postList = new ObjectMapper().readValue(mvcResult.getResponse().getContentAsString(), new TypeReference<>() {
         });
 
         assertEquals(2,postList.size());
@@ -270,7 +257,7 @@ public class PostTest {
                 .andReturn();
 
 
-        List<Post> postList = new ObjectMapper().registerModule(new JavaTimeModule()).readValue(mvcResult.getResponse().getContentAsString(), new TypeReference<>() {
+        List<Post> postList = new ObjectMapper().readValue(mvcResult.getResponse().getContentAsString(), new TypeReference<>() {
         });
 
 
@@ -311,9 +298,10 @@ public class PostTest {
 //        testUtils.createRandomPost();
 //
 //
-//
-//
 //    }
+
+
+
 
 
 }

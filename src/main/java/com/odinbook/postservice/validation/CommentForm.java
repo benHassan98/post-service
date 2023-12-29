@@ -15,7 +15,7 @@ public class CommentForm {
     private String content;
     public Comment getComment() throws JsonProcessingException {
 
-        Post post = new ObjectMapper().registerModule(new JavaTimeModule()).readValue(this.postJson, Post.class);
+        Post post = new ObjectMapper().readValue(this.postJson, Post.class);
 
 
         Comment comment = new Comment();

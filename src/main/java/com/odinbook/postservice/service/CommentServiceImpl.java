@@ -1,7 +1,6 @@
 package com.odinbook.postservice.service;
 
-import com.azure.messaging.webpubsub.WebPubSubServiceClientBuilder;
-import com.azure.messaging.webpubsub.models.WebPubSubContentType;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.odinbook.postservice.model.Comment;
@@ -27,17 +26,14 @@ import java.util.Optional;
 public class CommentServiceImpl implements CommentService{
 
     private final CommentRepository commentRepository;
-    private final ImageService imageService;
     private final MessageChannel notificationRequest;
     private final STOMPService stompService;
 
     @Autowired
     public CommentServiceImpl(CommentRepository commentRepository,
-                             ImageService imageService,
                              @Qualifier("notificationRequest") MessageChannel notificationRequest,
                               STOMPService stompService) {
         this.commentRepository = commentRepository;
-        this.imageService = imageService;
         this.notificationRequest = notificationRequest;
         this.stompService = stompService;
     }
@@ -88,8 +84,6 @@ public class CommentServiceImpl implements CommentService{
                 .orElseThrow();
 
         commentRepository.deleteById(commentId);
-
-        imageService.deleteImages(comment.getContent());
 
         stompService.sendRemovedCommentToAccounts(comment);
 

@@ -26,7 +26,7 @@ public class PostNotNullValidator implements ConstraintValidator<PostNotNull, St
     public boolean isValid(String postJson, ConstraintValidatorContext constraintValidatorContext) {
         Post post;
         try{
-            post = new ObjectMapper().registerModule(new JavaTimeModule()).readValue(postJson, Post.class);
+            post = new ObjectMapper().readValue(postJson, Post.class);
         }
         catch(JsonProcessingException exception){
             exception.printStackTrace();
