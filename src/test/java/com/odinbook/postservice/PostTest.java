@@ -15,6 +15,8 @@ import com.odinbook.postservice.record.PostRecord;
 import com.odinbook.postservice.repository.PostRepository;
 import com.odinbook.postservice.service.PostService;
 import com.odinbook.postservice.validation.PostForm;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
 import org.jsoup.Jsoup;
@@ -67,7 +69,6 @@ public class PostTest {
     @MockBean
     @Qualifier("notificationRequest")
     private MessageChannel notificationRequest;
-    
 
 
     @BeforeEach
@@ -296,7 +297,6 @@ public class PostTest {
 //        testUtils.createRandomPost();
 //        testUtils.createRandomPost();
 //        testUtils.createRandomPost();
-//
 //
 //    }
 
