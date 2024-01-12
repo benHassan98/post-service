@@ -23,7 +23,7 @@ public class STOMPController {
         this.stompService = stompService;
     }
 
-    @MessageMapping("like")
+    @MessageMapping("/like")
     public void postLike(@Payload LikeRecord likeRecord){
 
         if(likeRecord.isLike()){

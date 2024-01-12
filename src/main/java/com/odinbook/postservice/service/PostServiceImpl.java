@@ -2,6 +2,10 @@ package com.odinbook.postservice.service;
 
 
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.appinfo.InstanceInfo;
+import com.netflix.discovery.EurekaClient;
 import com.odinbook.postservice.model.Post;
 import com.odinbook.postservice.record.LikeNotificationRecord;
 import com.odinbook.postservice.record.PostRecord;
@@ -10,14 +14,20 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.http.*;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 @Service
@@ -26,18 +36,19 @@ public class PostServiceImpl implements PostService {
     @PersistenceContext
     private EntityManager entityManager;
     private final PostRepository postRepository;
-    private final MessageChannel notificationRequest;
-
+    private final StringRedisTemplate stringRedisTemplate;
 
     @Autowired
     public PostServiceImpl(PostRepository postRepository,
-                           @Qualifier("notificationRequest") MessageChannel notificationRequest) {
+                           StringRedisTemplate stringRedisTemplate
+                           ) {
         this.postRepository = postRepository;
-        this.notificationRequest = notificationRequest;
+        this.stringRedisTemplate = stringRedisTemplate;
+
     }
 
     @Override
-    public Post createPost(Post post){
+    public Post createPost(Post post) throws JsonProcessingException {
 
         post.setId(postRepository.saveAndFlush(post).getId());
 
@@ -50,12 +61,9 @@ public class PostServiceImpl implements PostService {
                 post.getVisibleToFriendList()
         );
 
-        Message<PostRecord> notificationMessage = MessageBuilder
-                .withPayload(postRecord)
-                .setHeader("notificationType","newPost")
-                .build();
+        String postJson = new ObjectMapper().writeValueAsString(postRecord);
 
-        notificationRequest.send(notificationMessage);
+        stringRedisTemplate.convertAndSend("findNotifiedAccountsChannel", postJson);
 
         return postRepository.saveAndFlush(post);
     }
@@ -106,7 +114,7 @@ public class PostServiceImpl implements PostService {
     @Transactional
     public void deletePostById(Long postId) throws NoSuchElementException{
 
-        Post post = findPostById(postId)
+        findPostById(postId)
                 .filter(p->!p.getDeleted())
                 .orElseThrow();
 
@@ -118,7 +126,7 @@ public class PostServiceImpl implements PostService {
 
     @Override
     @Transactional
-    public void addLike(Long accountId, Long postId) throws NoSuchElementException {
+    public void addLike(Long accountId, Long postId) throws NoSuchElementException{
         Post post = postRepository.findById(postId)
                 .filter(p->!p.getDeleted())
                 .orElseThrow();
@@ -129,13 +137,18 @@ public class PostServiceImpl implements PostService {
                 .setParameter("postId",postId)
                 .executeUpdate();
 
+        LikeNotificationRecord likeNotificationRecord = new LikeNotificationRecord(postId, post.getAccountId(), accountId);
 
-        Message<LikeNotificationRecord> notificationMessage = MessageBuilder
-                .withPayload(new LikeNotificationRecord(postId, post.getAccountId(), accountId))
-                .setHeader("notificationType","newLike")
-                .build();
+        String likeJson;
+        try{
+            likeJson = new ObjectMapper().writeValueAsString(likeNotificationRecord);
+        }
+        catch (JsonProcessingException exception){
+            exception.printStackTrace();
+            return;
+        }
 
-        notificationRequest.send(notificationMessage);
+        stringRedisTemplate.convertAndSend("newLikeChannel", likeJson);
 
     }
 

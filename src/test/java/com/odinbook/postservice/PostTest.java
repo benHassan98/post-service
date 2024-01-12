@@ -1,9 +1,6 @@
 package com.odinbook.postservice;
 
-import com.azure.core.http.rest.RequestOptions;
-import com.azure.core.http.rest.Response;
-import com.azure.core.implementation.util.BinaryDataContent;
-import com.azure.core.util.BinaryData;
+
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -17,11 +14,6 @@ import com.odinbook.postservice.service.PostService;
 import com.odinbook.postservice.validation.PostForm;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-import org.java_websocket.client.WebSocketClient;
-import org.java_websocket.handshake.ServerHandshake;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.select.Elements;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -66,19 +58,11 @@ public class PostTest {
     private TestUtils testUtils;
     @Autowired
     private MockMvc mockMvc;
-    @MockBean
-    @Qualifier("notificationRequest")
-    private MessageChannel notificationRequest;
-
 
     @BeforeEach
     public void beforeEach(){
         postRepository.deleteAll();
         testUtils.deleteAccounts();
-
-        Mockito
-                .when(notificationRequest.send(any()))
-                .thenReturn(true);
 
     }
     @AfterEach

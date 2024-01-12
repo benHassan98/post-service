@@ -44,9 +44,7 @@ public class CommentTest {
     private CommentRepository commentRepository;
     @MockBean
     private STOMPServiceImpl stompService;
-    @MockBean
-    @Qualifier("notificationRequest")
-    private MessageChannel notificationRequest;
+
 
 
     @BeforeEach
@@ -55,9 +53,6 @@ public class CommentTest {
         postRepository.deleteAll();
         testUtils.deleteAccounts();
 
-        Mockito
-                .when(notificationRequest.send(any()))
-                .thenReturn(true);
         Mockito
                 .doNothing()
                 .when(stompService)

@@ -8,7 +8,7 @@ import java.util.NoSuchElementException;
 import java.util.Optional;
 
 public interface CommentService {
-    public Comment createComment(Comment comment);
+    public Comment createComment(Comment comment) throws JsonProcessingException;
     public Optional<Comment> findCommentById(Long commentId);
     public List<Comment> findCommentsByPostId(Long postId);
     public List<Comment> findCommentsByAccountId(Long accountId);

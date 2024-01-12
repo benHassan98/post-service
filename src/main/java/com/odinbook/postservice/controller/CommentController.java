@@ -4,9 +4,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.odinbook.postservice.model.Comment;
 import com.odinbook.postservice.service.CommentService;
 import com.odinbook.postservice.validation.CommentForm;
-import io.netty.handler.codec.http.HttpResponseStatus;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
@@ -59,9 +59,8 @@ public class CommentController {
 
     }
     @ExceptionHandler(value = JsonProcessingException.class)
-    public ResponseEntity<?> jsonProcessingExceptionHandler(Exception exception){
-        exception.printStackTrace();
-        return ResponseEntity.status(HttpResponseStatus.INTERNAL_SERVER_ERROR.code()).build();
+    public ResponseEntity<?> jsonProcessingExceptionHandler(){
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
     }
 
 }

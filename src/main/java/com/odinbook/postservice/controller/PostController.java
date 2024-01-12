@@ -4,15 +4,14 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.odinbook.postservice.model.Post;
 import com.odinbook.postservice.service.PostService;
 import com.odinbook.postservice.validation.PostForm;
-import io.netty.handler.codec.http.HttpResponseStatus;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
+
 import java.util.*;
 
 @RestController
@@ -72,7 +71,7 @@ public class PostController {
     }
 
     @DeleteMapping("/{postId}")
-    public void deleteById(@PathVariable Long postId) throws IOException,NoSuchElementException {
+    public void deleteById(@PathVariable Long postId) throws NoSuchElementException {
         postService.deletePostById(postId);
     }
 
@@ -80,13 +79,9 @@ public class PostController {
     public ResponseEntity<?> noSuchElementExceptionHandler(){
         return ResponseEntity.notFound().build();
     }
-    @ExceptionHandler(value = IOException.class)
-    public ResponseEntity<?> ioExceptionHandler(){
-        return ResponseEntity.status(HttpResponseStatus.BAD_GATEWAY.code()).build();
-    }
     @ExceptionHandler(value = JsonProcessingException.class)
     public ResponseEntity<?> jsonProcessingExceptionHandler(){
-        return ResponseEntity.status(HttpResponseStatus.INTERNAL_SERVER_ERROR.code()).build();
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
     }
 
 
