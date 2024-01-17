@@ -30,7 +30,7 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(authorize -> authorize
 //                                .anyRequest().permitAll()
-                        .requestMatchers("/websocket/**").permitAll().
+                        .requestMatchers("/websocket/**","/actuator/**").permitAll().
 
                         anyRequest().authenticated()
                 )
