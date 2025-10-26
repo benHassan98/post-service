@@ -1,138 +1,185 @@
 package com.odinbook.postservice;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.jsoup.Jsoup;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
+import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockPart;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
+import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
+
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.odinbook.postservice.model.Comment;
 import com.odinbook.postservice.model.Post;
 import com.odinbook.postservice.repository.CommentRepository;
-import com.odinbook.postservice.repository.PostRepository;
-import com.odinbook.postservice.service.STOMPServiceImpl;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.MediaType;
-import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
+import com.odinbook.service.ImageService;
 
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import io.minio.MinioClient;
 
 @SpringBootTest
 @AutoConfigureMockMvc
+@Testcontainers
+@ActiveProfiles("test")
+@SuppressWarnings("unused")
 public class CommentTest {
-    @Autowired
-    private TestUtils testUtils;
-    @Autowired
-    private MockMvc mockMvc;
-    @Autowired
-    private PostRepository postRepository;
-    @Autowired
-    private CommentRepository commentRepository;
-    @MockBean
-    private STOMPServiceImpl stompService;
+  @Autowired
+  private TestUtils testUtils;
+  @Autowired
+  private MockMvc mockMvc;
+  @Autowired
+  private CommentRepository commentRepository;
+  @Container
+  public static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:17");
+  @MockitoBean
+  private StringRedisTemplate stringRedisTemplate;
+  @MockitoBean
+  private MinioClient minioClient;
+  @MockitoSpyBean
+  private ImageService imageService;
 
+  @DynamicPropertySource
+  static void registerPgProperties(DynamicPropertyRegistry registry) {
+    registry.add("spring.datasource.url", postgres::getJdbcUrl);
+    registry.add("spring.datasource.username", postgres::getUsername);
+    registry.add("spring.datasource.password", postgres::getPassword);
+  }
 
+  @BeforeAll
+  static void beforeAll() {
+    postgres.start();
+  }
 
-    @BeforeEach
-    public void beforeEach(){
-        commentRepository.deleteAll();
-        postRepository.deleteAll();
-        testUtils.deleteAccounts();
+  @AfterAll
+  static void afterAll() {
+    postgres.stop();
+  }
 
-        Mockito
-                .doNothing()
-                .when(stompService)
-                .sendNewCommentToAccounts(any());
-        Mockito
-                .doNothing()
-                .when(stompService)
-                .sendRemovedLikeToAccounts(any());
+  @BeforeEach
+  public void beforeEach() {
+    testUtils.deleteAllComments();
+    testUtils.deleteAllPosts();
+    testUtils.deleteAllAccounts();
+  }
 
+  @AfterEach
+  public void afterEach() {
+    testUtils.deleteAllComments();
+    testUtils.deleteAllPosts();
+    testUtils.deleteAllAccounts();
+  }
+
+  @Test
+  public void createComment() throws Exception {
+    Post post = testUtils.createRandomPost();
+    var jsonObject = new Object() {
+      public Long accountId = post.getAccountId();
+      public Long postId = post.getId();
+      public String content = "<div>HEll</div><img src=\'123-456\'/><img src=\'456-789\' /> <img src=\'123-789\' />";
+    };
+
+    var jsonString = new ObjectMapper().writeValueAsString(jsonObject);
+
+    mockMvc.perform(
+        multipart("/comment/")
+            .file("imageArr", new byte[] { 1, 2, 3 })
+            .file("imageArr", new byte[] { 1, 2, 3 })
+            .file("imageArr", new byte[] { 1, 2, 3 })
+            .part(new MockPart("commentDto", "", jsonString.getBytes(), MediaType.APPLICATION_JSON)))
+        .andExpect(status().isOk());
+
+  }
+
+  @Test
+  public void findCommentById() throws Exception {
+    Post post = testUtils.createRandomPost();
+
+    Comment comment = testUtils.createComment(post.getAccountId(), post.getId());
+
+    MvcResult mvcResult = mockMvc.perform(
+        get("/comment/" + comment.getId())
+            .accept(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk()).andReturn();
+
+    Comment resComment = new ObjectMapper().readValue(mvcResult.getResponse().getContentAsString(),
+        Comment.class);
+
+    assertEquals(comment.getId(), resComment.getId());
+
+  }
+
+  @Test
+  public void findCommentByPost() throws Exception {
+    Post post = testUtils.createRandomPost();
+
+    List<Comment> commentList = new ArrayList<>();
+    for (int i = 0; i < 10; i++) {
+      var accountId = testUtils.createRandomAccount();
+      commentList.add(testUtils.createComment(accountId, post.getId()));
+      Thread.sleep(10);
     }
+    commentList = commentList.reversed();
 
-    @AfterEach
-    public void afterEach() {
-        commentRepository.deleteAll();
-        postRepository.deleteAll();
-        testUtils.deleteAccounts();
-    }
+    MvcResult mvcResult = mockMvc.perform(
+        get("/comment/post/" + post.getId())
+            .header("preTime", commentList.get(2).getCreatedDate().getTime())
+            .accept(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk()).andReturn();
 
+    List<Comment> resList = new ObjectMapper().readValue(mvcResult.getResponse().getContentAsString(),
+        new TypeReference<>() {
+        });
+    assertEquals(7, resList.size());
+  }
 
-    @Test
-    public void createComment()throws Exception{
+  @Test
+  public void deleteCommentById() throws Exception {
+    Comment comment = testUtils.createRandomComment();
+    var jsonObject = new Object() {
+      public Long id = comment.getId();
+    };
 
+    var jsonString = new ObjectMapper().writeValueAsString(jsonObject);
 
-        Long accountId = testUtils.createRandomAccount();
-        Post post = testUtils.createPost(accountId);
+    mockMvc.perform(
+        delete("/comment/")
+            .content(jsonString)
+            .contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk());
 
+    mockMvc.perform(
+        get("/comment/" + comment.getId()))
+        .andExpect(status().isNotFound());
 
-        String postJson = new ObjectMapper().writeValueAsString(post);
-
-        mockMvc.perform(
-                post("/comment/create")
-                        .queryParam("accountId",accountId.toString())
-                        .queryParam("postJson",postJson)
-                        .queryParam("content","Hello")
-                        .characterEncoding("utf-8")
-                        .accept(MediaType.APPLICATION_JSON)
-        ).andExpect(status().isOk());
-
-    }
-
-    @Test
-    public void findCommentById()throws Exception{
-        Post post = testUtils.createRandomPost();
-
-        Comment comment = testUtils.createComment(post.getAccountId(),post);
-
-
-        MvcResult mvcResult = mockMvc.perform(
-                get("/comment/"+comment.getId())
-                        .characterEncoding("utf-8")
-                        .accept(MediaType.APPLICATION_JSON)
-        ).andExpect(status().isOk()).andReturn();
-
-        Comment resComment = new ObjectMapper().readValue(mvcResult.getResponse().getContentAsString(), Comment.class);
-
-
-        assertEquals(comment.getId(),resComment.getId());
-
-    }
-
-    @Test
-    public void deleteCommentById()throws Exception{
-        Comment comment = testUtils.createRandomComment();
-        mockMvc.perform(
-                delete("/comment/"+comment.getId())
-                        .characterEncoding("utf-8")
-                        .accept(MediaType.APPLICATION_JSON)
-        ).andExpect(status().isOk());
-
-        mockMvc.perform(
-                get("/comment/"+comment.getId()).contentType(MediaType.APPLICATION_JSON).characterEncoding("utf-8")
-                        .accept(MediaType.APPLICATION_JSON)
-        ).andExpect(status().isNotFound());
-
-    }
-
-
-
-
-
-
+  }
 
 }

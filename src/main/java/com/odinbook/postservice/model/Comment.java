@@ -1,73 +1,70 @@
 package com.odinbook.postservice.model;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import jakarta.persistence.*;
-import org.hibernate.annotations.CreationTimestamp;
-import org.springframework.web.multipart.MultipartFile;
-
-
-import java.sql.Date;
 import java.sql.Timestamp;
-import java.time.Instant;
-import java.util.List;
+
+import org.hibernate.annotations.CreationTimestamp;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "comments")
-@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Comment {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
 
-    @Column(name = "account_id")
-    private Long accountId;
-    @JsonBackReference
-    @ManyToOne
-    @JoinColumn(name = "post_id")
-    private Post post;
-    @Column(name = "content")
-    private String content;
-    @Column(name = "created_date", nullable = false, updatable = false)
-    @CreationTimestamp
-    private Timestamp createdDate;
+  @Column(name = "account_id")
+  private Long accountId;
 
-    public Timestamp getCreatedDate() {
-        return createdDate;
-    }
+  @Column(name = "post_id")
+  private Long postId;
 
-    public Long getId() {
-        return id;
-    }
+  @Column(name = "content")
+  private String content;
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+  @Column(name = "created_date")
+  @CreationTimestamp
+  private Timestamp createdDate;
 
-    public Long getAccountId() {
-        return accountId;
-    }
+  public Timestamp getCreatedDate() {
+    return createdDate;
+  }
 
-    public void setAccountId(Long accountId) {
-        this.accountId = accountId;
-    }
+  public Long getId() {
+    return id;
+  }
 
-    public Post getPost() {
-        return post;
-    }
+  public void setId(Long id) {
+    this.id = id;
+  }
 
-    public void setPost(Post post) {
-        this.post = post;
-    }
+  public Long getAccountId() {
+    return accountId;
+  }
 
-    public String getContent() {
-        return content;
-    }
+  public void setAccountId(Long accountId) {
+    this.accountId = accountId;
+  }
 
-    public void setContent(String content) {
-        this.content = content;
-    }
+  public String getContent() {
+    return content;
+  }
 
+  public void setContent(String content) {
+    this.content = content;
+  }
 
+  public Long getPostId() {
+    return postId;
+  }
+
+  public void setPostId(Long postId) {
+    this.postId = postId;
+  }
 
 }

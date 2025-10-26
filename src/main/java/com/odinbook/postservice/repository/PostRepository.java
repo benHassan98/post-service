@@ -1,38 +1,19 @@
 package com.odinbook.postservice.repository;
 
-import com.odinbook.postservice.model.Post;
+import java.sql.Timestamp;
+import java.util.List;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import java.util.List;
+import com.odinbook.postservice.model.Post;
 
-public interface PostRepository extends JpaRepository<Post,Long> {
-    @Query(value = """
-            SELECT *
+public interface PostRepository extends JpaRepository<Post, Long> {
+  @Query(value = "SELECT id, account_id, content, is_deleted, shared_from_posts, content_history, update_time_history, created_date FROM posts WHERE account_id = :accountId AND created_date < :preTime ORDER BY created_date DESC LIMIT 50", nativeQuery = true)
+  public List<Post> findByAccountId(@Param("accountId") Long accountId, @Param("preTime") Timestamp preTime);
 
-            FROM posts
-
-            WHERE
-            account_id = :accountId
-
-            OR
-
-            (
-              is_followers_visible = true AND EXISTS ( select * from followers where follower_id = :accountId AND followee_id = account_id )
-            )
-
-            OR
-
-            (
-            EXISTS (SELECT * FROM friends WHERE (adding_id = :accountId AND added_id = account_id) OR (added_id = :accountId AND adding_id = account_id)   )
-            AND
-            (
-            (friends_visibility_type = true AND EXISTS (select * from posts_friends_visibility WHERE friend_id = :accountId AND id = post_id) )
-            OR
-            (friends_visibility_type = false AND NOT EXISTS (select * from posts_friends_visibility WHERE friend_id = :accountId AND id = post_id) )
-            )
-            )""",nativeQuery = true)
-    public List<Post> findPostsByAccountId(@Param("accountId") Long accountId);
+  @Query(value = "SELECT id, account_id, content, is_deleted, shared_from_posts, content_history, update_time_history, created_date FROM posts WHERE (account_id IN (SELECT followee_id FROM followers WHERE follower_id = :accountId) OR account_id = :accountId) AND created_date < :preTime ORDER BY created_date DESC LIMIT 50", nativeQuery = true)
+  public List<Post> findFeed(@Param("accountId") Long accountId, @Param("preTime") Timestamp preTime);
 
 }

@@ -1,157 +1,123 @@
 package com.odinbook.postservice.model;
 
-
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
-import jakarta.persistence.*;
-import org.hibernate.annotations.CreationTimestamp;
-import org.springframework.web.multipart.MultipartFile;
-
-import java.sql.Date;
 import java.sql.Timestamp;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.hibernate.annotations.CreationTimestamp;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
+
 @Entity
 @Table(name = "posts")
-@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Post {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-    @Column(name = "account_id")
-    private Long accountId;
-    @Column(name = "content")
-    private String content;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "shared_from_post_id")
-    private Post sharedFromPost;
+  @Column(name = "account_id")
+  private Long accountId;
 
-    @ElementCollection
-    @CollectionTable(name = "likes" ,joinColumns = @JoinColumn(name = "post_id"))
-    @Column(name = "account_id")
-    private List<Long> likesList = new ArrayList<>();
+  @Column(name = "content")
+  private String content;
 
-    @JsonManagedReference
-    @OneToMany(mappedBy = "post")
-    private List<Comment> commentsList = new ArrayList<>();
+  @Column(name = "shared_from_posts")
+  private List<Long> sharedFromPostList = new ArrayList<>();
 
-    @Column(name = "is_edited")
-    private Boolean isEdited = false;
-    @Column(name = "is_followers_visible")
-    private Boolean isVisibleToFollowers;
+  @Transient
+  private Long likesCount = 0l;
 
-    @Column(name = "is_deleted")
-    private Boolean isDeleted = false;
+  @Transient
+  private Long commentsCount = 0l;
 
-    @Column(name = "friends_visibility_type")
-    private Boolean friendsVisibilityType;
+  @Transient
+  private List<byte[]> imageByteList = new ArrayList<>();
 
-    @ElementCollection
-    @CollectionTable(name = "posts_friends_visibility" ,joinColumns = @JoinColumn(name = "post_id"))
-    @Column(name = "friend_id")
-    private List<Long> visibleToFriendList = new ArrayList<>();
+  @Column(name = "content_history")
+  private List<String> contentHistory = new ArrayList<>();
 
-    @Column(name = "created_date", nullable = false, updatable = false)
-    @CreationTimestamp
-    private Timestamp createdDate;
+  @Column(name = "update_time_history")
+  private List<Timestamp> updateTimeHistory = new ArrayList<>();
 
-    public Timestamp getCreatedDate() {
-        return createdDate;
-    }
+  @Column(name = "is_deleted")
+  private Boolean isDeleted = false;
 
-    public Long getId() {
-        return id;
-    }
+  @Column(name = "created_date")
+  @CreationTimestamp
+  private Timestamp createdDate;
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+  public Timestamp getCreatedDate() {
+    return createdDate;
+  }
 
-    public Long getAccountId() {
-        return accountId;
-    }
+  public Long getId() {
+    return id;
+  }
 
-    public void setAccountId(Long accountId) {
-        this.accountId = accountId;
-    }
+  public void setId(Long id) {
+    this.id = id;
+  }
 
-    public String getContent() {
-        return content;
-    }
+  public Long getAccountId() {
+    return accountId;
+  }
 
-    public void setContent(String content) {
-        this.content = content;
-    }
+  public void setAccountId(Long accountId) {
+    this.accountId = accountId;
+  }
 
-    public Post getSharedFromPost() {
-        return sharedFromPost;
-    }
+  public String getContent() {
+    return content;
+  }
 
-    public void setSharedFromPost(Post sharedFromPost) {
-        this.sharedFromPost = sharedFromPost;
-    }
+  public void setContent(String content) {
+    this.content = content;
+  }
 
-    public List<Long> getLikesList() {
-        return likesList;
-    }
+  public List<Long> getSharedFromPostList() {
+    return sharedFromPostList;
+  }
 
-    public List<Comment> getCommentsList() {
-        return commentsList;
-    }
+  public void setSharedFromPostList(List<Long> sharedFromPostList) {
+    this.sharedFromPostList = sharedFromPostList;
+  }
 
-    public void setLikesList(List<Long> likesList) {
-        this.likesList = likesList;
-    }
+  public Long getLikesCount() {
+    return likesCount;
+  }
 
-    public void setCommentsList(List<Comment> commentsList) {
-        this.commentsList = commentsList;
-    }
+  public void setLikesCount(Long likesCount) {
+    this.likesCount = likesCount;
+  }
 
-    public Boolean getVisibleToFollowers() {
-        return isVisibleToFollowers;
-    }
+  public Long getCommentsCount() {
+    return commentsCount;
+  }
 
-    public void setVisibleToFollowers(Boolean visibleToFollowers) {
-        isVisibleToFollowers = visibleToFollowers;
-    }
+  public void setCommentsCount(Long commentsCount) {
+    this.commentsCount = commentsCount;
+  }
 
-    public Boolean getFriendsVisibilityType() {
-        return friendsVisibilityType;
-    }
+  public Boolean getIsDeleted() {
+    return isDeleted;
+  }
 
-    public void setFriendsVisibilityType(Boolean friendsVisibilityType) {
-        this.friendsVisibilityType = friendsVisibilityType;
-    }
+  public void setIsDeleted(Boolean isDeleted) {
+    this.isDeleted = isDeleted;
+  }
 
-    public List<Long> getVisibleToFriendList() {
-        return visibleToFriendList;
-    }
+  public List<byte[]> getImageByteList() {
+    return imageByteList;
+  }
 
-    public void setVisibleToFriendList(List<Long> visibleToFriendList) {
-        this.visibleToFriendList = visibleToFriendList;
-    }
-
-    public Boolean getEdited() {
-        return isEdited;
-    }
-
-    public void setEdited(Boolean edited) {
-        isEdited = edited;
-    }
-
-    public void setCreatedDate(Timestamp createdDate) {
-        this.createdDate = createdDate;
-    }
-
-    public Boolean getDeleted() {
-        return isDeleted;
-    }
-
-    public void setDeleted(Boolean deleted) {
-        isDeleted = deleted;
-    }
+  public Boolean addImageByte(byte[] byteArr) {
+    return this.imageByteList.add(byteArr);
+  }
 
 }

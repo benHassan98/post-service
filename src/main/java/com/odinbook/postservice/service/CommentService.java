@@ -5,16 +5,16 @@ import com.odinbook.postservice.model.Comment;
 
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.Optional;
+
+import org.springframework.web.multipart.MultipartFile;
 
 public interface CommentService {
-    public Comment createComment(Comment comment) throws JsonProcessingException;
-    public Optional<Comment> findCommentById(Long commentId);
-    public List<Comment> findCommentsByPostId(Long postId);
-    public List<Comment> findCommentsByAccountId(Long accountId);
-    public void deleteCommentById(Long commentId) throws NoSuchElementException;
+  public Long create(Comment comment, MultipartFile[] imageArr) throws JsonProcessingException;
 
+  public Comment findById(Long id) throws NoSuchElementException;
 
+  public List<Comment> findByPostId(Long postId, String preTimeStr);
 
+  public void deleteById(Long id);
 
 }
